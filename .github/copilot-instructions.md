@@ -1,17 +1,10 @@
 - Use early returns if possible.
-- In JavaScript don't use semicolons but still use them in CSS.
 - Use hyphen case in filenames.
-- Always use {} braces for ifs.
-- Use tabs for indentation.
 - No trivial comments.
-- In a .vue component the first section is always the template followed by the script and then the style
-- Use PNPM for package management
 - Use `./prd.md` for the project requirements document
 - Use as less external dependency as possible.
-- Most of the stuff should be done in the backend.
 - If you cannot decide what to do copy features from the following URL: https://news.ycombinator.com/ #fetch
 - Use SQLite for the database.
-- Try not to use JavaScript in the frontend.
-- Use TypeScript for the backend.
+- Use Go.
 - Try to render everything in the backend.
 - Don't use tailwind CSS.
