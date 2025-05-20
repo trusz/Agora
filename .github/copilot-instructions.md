@@ -10,3 +10,8 @@
 - Use as less external dependency as possible.
 - Most of the stuff should be done in the backend.
 - If you cannot decide what to do copy features from the following URL: https://news.ycombinator.com/ #fetch
+- Use SQLite for the database.
+- Try not to use JavaScript in the frontend.
+- Use TypeScript for the backend.
+- Try to render everything in the backend.
+- Don't use tailwind CSS.
