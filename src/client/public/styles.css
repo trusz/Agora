@@ -1,0 +1,154 @@
+/* Main styles for Agora */
+body {
+	font-family: Verdana, Geneva, sans-serif;
+	margin: 0;
+	padding: 8px;
+	background-color: #f6f6ef;
+	color: #333;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+a {
+	color: #000;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #555;
+}
+
+.header {
+	background-color: #ff6600;
+	padding: 2px;
+}
+
+.header-content {
+	display: flex;
+	align-items: center;
+}
+
+.logo {
+	border: 1px solid white;
+	margin-right: 8px;
+}
+
+.nav-link {
+	margin-right: 10px;
+	color: #000;
+}
+
+.auth-links {
+	margin-left: auto;
+}
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.post-item {
+	margin-bottom: 5px;
+	padding: 5px 0;
+}
+
+.post-title {
+	font-weight: normal;
+}
+
+.post-url {
+	color: #666;
+	font-size: 12px;
+}
+
+.post-meta {
+	color: #666;
+	font-size: 10px;
+}
+
+.post-meta a {
+	color: #666;
+}
+
+.post-content {
+	margin: 10px 0;
+	padding: 10px;
+	max-width: 800px;
+}
+
+.upvote {
+	cursor: pointer;
+	color: #666;
+	display: inline-block;
+	width: 10px;
+	text-align: center;
+}
+
+.upvote:hover {
+	color: #ff6600;
+}
+
+.comment {
+	margin-bottom: 10px;
+	padding: 5px 0;
+}
+
+.comment-meta {
+	color: #666;
+	font-size: 10px;
+}
+
+.comment-content {
+	margin: 5px 0;
+	padding-left: 10px;
+}
+
+.comment-actions {
+	font-size: 10px;
+}
+
+.comment-form {
+	margin: 15px 0;
+}
+
+.comment-form textarea {
+	width: 100%;
+	max-width: 500px;
+	height: 80px;
+}
+
+.comment-replies {
+	margin-left: 25px;
+}
+
+.form-group {
+	margin-bottom: 10px;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group textarea {
+	width: 100%;
+	max-width: 300px;
+	padding: 5px;
+}
+
+.form-actions {
+	margin-top: 15px;
+}
+
+.btn {
+	background-color: #f6f6ef;
+	border: 1px solid #999;
+	padding: 5px 10px;
+	cursor: pointer;
+}
+
+.btn:hover {
+	background-color: #eaeaea;
+}

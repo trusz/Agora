@@ -1,0 +1,308 @@
+<%- include('layout',
+	{
+	body:
+	`
+	<div
+	class="post-detail">
+	<div class="post-item">
+		<div>
+			<% if
+			   (locals.user)
+			   {
+			   %>
+				<span class="upvote"
+					  onclick="vote('post', <%= post.id %>)">▲</span>
+				<% }
+				   %>
+					<span class="post-title">
+						<% if
+						   (post.url)
+						   {
+						   %>
+							<a href="<%= post.url %>"
+							   target="_blank">
+								<%= post.title
+									%>
+							</a>
+							<span class="post-url">(<%= new
+									URL(post.url).hostname
+									%>)</span>
+							<% }
+							   else
+							   {
+							   %>
+								<%= post.title
+									%>
+									<% }
+									   %>
+					</span>
+		</div>
+		<div class="post-meta">
+			<span id="post-score-<%= post.id %>">
+				<%= post.score
+					%>
+			</span> points by
+			<%= post.username
+				%>
+				<%= new
+					Date(post.created_at).toLocaleString()
+					%>
+					<% if
+					   (locals.user
+					   &&
+					   locals.user.id===post.user_id)
+					   {
+					   %>
+						| <a href="#"
+						   onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this post?')) { 
+						document.getElementById('delete-form-<%= post.id %>').submit(); 
+					}">delete</a>
+						<form id="delete-form-<%= post.id %>"
+							  action="/post/<%= post.id %>/delete"
+							  method="post"
+							  style="display: none;"></form>
+						<% }
+						   %>
+		</div>
+	</div>
+
+	<% if
+	   (post.description)
+	   {
+	   %>
+		<div class="post-content">
+			<%= post.description
+				%>
+		</div>
+		<% }
+		   %>
+
+			<div class="comments-section">
+				<h3>
+					<%= comments.length
+						%> Comments
+				</h3>
+
+				<% if
+				   (locals.user)
+				   {
+				   %>
+					<div class="comment-form">
+						<form action="/post/<%= post.id %>/comment"
+							  method="post">
+							<div class="form-group">
+								<textarea name="content"
+										  placeholder="Write your comment..."
+										  required></textarea>
+							</div>
+							<div class="form-group">
+								<button type="submit"
+										class="btn">Add Comment</button>
+							</div>
+						</form>
+					</div>
+					<% }
+					   else
+					   {
+					   %>
+						<p><a href="/login">Login</a> to comment.</p>
+						<% }
+						   %>
+
+							<div class="comments-list">
+								<% function
+								   renderComments(comments)
+								   {
+								   %>
+									<% comments.forEach(comment=> { %>
+										<div class="comment"
+											 id="comment-<%= comment.id %>">
+											<div class="comment-meta">
+												<% if
+												   (locals.user)
+												   {
+												   %>
+													<span class="upvote"
+														  onclick="vote('comment', <%= comment.id %>)">▲</span>
+													<% }
+													   %>
+														<span id="comment-score-<%= comment.id %>">
+															<%= comment.score
+																%>
+														</span> points by
+														<%= comment.username
+															%>
+															<%= new
+																Date(comment.created_at).toLocaleString()
+																%>
+											</div>
+											<div class="comment-content"
+												 id="comment-content-<%= comment.id %>">
+												<%= comment.content
+													%>
+											</div>
+											<div class="comment-actions">
+												<% if
+												   (locals.user)
+												   {
+												   %>
+													<a href="#"
+													   onclick="event.preventDefault(); showReplyForm(<%= comment.id %>)">reply</a>
+
+													<% if
+													   (locals.user.id===comment.user_id)
+													   {
+													   %>
+														| <a href="#"
+														   onclick="event.preventDefault(); showEditForm(<%= comment.id %>)">edit</a>
+														| <a href="#"
+														   onclick="event.preventDefault(); deleteComment(<%= comment.id %>)">delete</a>
+														<% }
+														   %>
+
+															<div id="reply-form-<%= comment.id %>"
+																 style="display: none; margin-top: 5px;">
+																<form
+																	  onsubmit="event.preventDefault(); submitReply(<%= post.id %>, <%= comment.id %>)">
+																	<div class="form-group">
+																		<textarea id="reply-content-<%= comment.id %>"
+																				  placeholder="Write your reply..."
+																				  required></textarea>
+																	</div>
+																	<div class="form-group">
+																		<button type="submit"
+																				class="btn">Submit Reply</button>
+																		<button type="button"
+																				class="btn"
+																				onclick="hideReplyForm(<%= comment.id %>)">Cancel</button>
+																	</div>
+																</form>
+															</div>
+
+															<div id="edit-form-<%= comment.id %>"
+																 style="display: none; margin-top: 5px;">
+																<form
+																	  onsubmit="event.preventDefault(); submitEdit(<%= comment.id %>)">
+																	<div class="form-group">
+																		<textarea id="edit-content-<%= comment.id %>"
+																				  required><%= comment.content %></textarea>
+																	</div>
+																	<div class="form-group">
+																		<button type="submit"
+																				class="btn">Update Comment</button>
+																		<button type="button"
+																				class="btn"
+																				onclick="hideEditForm(<%= comment.id %>)">Cancel</button>
+																	</div>
+																</form>
+															</div>
+															<% }
+															   %>
+											</div>
+
+											<% if
+											   (comment.replies
+											   &&
+											   comment.replies.length> 0) { %>
+												<div class="comment-replies">
+													<% renderComments(comment.replies)
+													   %>
+												</div>
+												<% }
+												   %>
+										</div>
+										<% })
+										   %>
+											<% }
+											   %>
+
+												<% renderComments(comments)
+												   %>
+							</div>
+			</div>
+			</div>
+
+			<script>
+				// Comments functionality
+				function showReplyForm(commentId) {
+					document.getElementById('reply-form-' + commentId).style.display = 'block'
+				}
+
+				function hideReplyForm(commentId) {
+					document.getElementById('reply-form-' + commentId).style.display = 'none'
+				}
+
+				function showEditForm(commentId) {
+					document.getElementById('edit-form-' + commentId).style.display = 'block'
+				}
+
+				function hideEditForm(commentId) {
+					document.getElementById('edit-form-' + commentId).style.display = 'none'
+				}
+
+				function submitReply(postId, parentId) {
+					const content = document.getElementById('reply-content-' + parentId).value
+
+					if (!content.trim()) return
+
+					fetch('/post/' + postId + '/comment', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						body: JSON.stringify({ content, parent_id: parentId })
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.success) {
+								// Reload the page to show the new comment in the correct tree structure
+								window.location.reload()
+							}
+						})
+						.catch(error => console.error('Error posting reply:', error))
+				}
+
+				function submitEdit(commentId) {
+					const content = document.getElementById('edit-content-' + commentId).value
+
+					if (!content.trim()) return
+
+					fetch('/comment/' + commentId + '/update', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						body: JSON.stringify({ content })
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.success) {
+								document.getElementById('comment-content-' + commentId).textContent = content
+								hideEditForm(commentId)
+							}
+						})
+						.catch(error => console.error('Error updating comment:', error))
+				}
+
+				function deleteComment(commentId) {
+					if (!confirm('Are you sure you want to delete this comment?')) return
+
+					fetch('/comment/' + commentId + '/delete', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-Requested-With': 'XMLHttpRequest'
+						}
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.success) {
+								document.getElementById('comment-' + commentId).style.display = 'none'
+							}
+						})
+						.catch(error => console.error('Error deleting comment:', error))
+				}
+			</script>
+			`) %>

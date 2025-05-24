@@ -3,8 +3,6 @@
 - No trivial comments.
 - Use `./prd.md` for the project requirements document
 - Use as less external dependency as possible.
-- If you cannot decide what to do copy features from the following URL: https://news.ycombinator.com/ #fetch
 - Use SQLite for the database.
 - Use Go.
-- Try to render everything in the backend.
 - Don't use tailwind CSS.
