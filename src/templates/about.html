@@ -1,0 +1,21 @@
+{{ define "about.html" }}
+{{ template "layout.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<section class="about-section">
+	<p>Welcome to our Go Templating demonstration website!</p>
+	<p>This is a simple project that showcases how to use Go's html/template package to build dynamic web pages.</p>
+	<p>Navigate through the different pages using the navigation menu above to see various examples of template usage.
+	</p>
+	<div class="features">
+		<h3>Project Features:</h3>
+		<ul>
+			<li>Template inheritance with base layouts</li>
+			<li>Dynamic content rendering</li>
+			<li>Modular templates for each page type</li>
+			<li>Basic Go web server implementation</li>
+		</ul>
+	</div>
+</section>
+{{ end }}

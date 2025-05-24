@@ -6,3 +6,6 @@
 - Use SQLite for the database.
 - Use Go.
 - Don't use tailwind CSS.
+- Put everything in the `src` directory.
+- Don't use .ejs files.
+- Use Go's `html/template` package and HTML files for rendering HTML.

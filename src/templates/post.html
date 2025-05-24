@@ -1,0 +1,19 @@
+{{ define "post.html" }}
+{{ template "layout.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<article class="blog-post">
+	{{ with .Data }}
+	<div class="post-meta">
+		<p class="author">By: {{ .Author }}</p>
+	</div>
+	<div class="post-content">
+		<p>{{ .Content }}</p>
+	</div>
+	<div class="post-footer">
+		<p>Thanks for reading!</p>
+	</div>
+	{{ end }}
+</article>
+{{ end }}
