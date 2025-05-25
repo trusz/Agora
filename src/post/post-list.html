@@ -1,9 +1,10 @@
-{{ define "post.html" }}
+{{ define "post-list.html" }}
 {{ template "layout.html" . }}
 {{ end }}
 
 {{ define "content" }}
-<article class="blog-post">
+<h1>Post list</h1>
+<!-- <article class="blog-post">
 	{{ with .Data }}
 	<div class="post-meta">
 		<p class="author">By: {{ .Author }}</p>
@@ -15,5 +16,5 @@
 		<p>Thanks for reading!</p>
 	</div>
 	{{ end }}
-</article>
+</article> -->
 {{ end }}
