@@ -11,7 +11,7 @@ const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 	);
 	`
 
-func CreateTable(db *db.DB) error {
+func CreateDBTable(db *db.DB) error {
 	// Create the posts table if it doesn't exist
 	_, err := db.Exec(TABLE_QUERY)
 	if err != nil {
