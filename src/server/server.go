@@ -1,12 +1,12 @@
 package server
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"goazuread/src/db"
 	"goazuread/src/log"
@@ -42,6 +42,9 @@ func NewServer(
 	}
 }
 
+//go:embed static
+var staticFiles embed.FS
+
 // Start starts the server in a new goroutine
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
@@ -50,17 +53,36 @@ func (s *Server) Start() Stopper {
 	postHandler := post.NewPostHandler(db)
 	postHandler.CreateDBTable()
 
-	currentTimestamp := fmt.Sprintf("%d", time.Now().Unix())
+	printEntries := func(path string, prefix string) {
+		entries, err := staticFiles.ReadDir(path)
+		if err != nil {
+			log.Error.Printf("failed to read %s: %v", path, err)
+			return
+		}
+		for _, entry := range entries {
+			fullName := prefix + entry.Name()
+			if entry.IsDir() {
+				log.Info.Println("dir :", fullName+"/")
+				printEntries(path+"/"+entry.Name(), fullName+"/")
+			} else {
+				log.Info.Println("file:", fullName)
+			}
+		}
+	}
+
+	log.Info.Println("static files embedded:")
+	printEntries("static", "")
 
 	go func() {
 		var router = mux.NewRouter()
+		fs := http.FileServer(http.FS(staticFiles))
 
 		//
 		// ROUTES
 		//
 		router.Use(loggingMiddleware)
-		router.Use(makeETagMiddleware(currentTimestamp))
-		router.HandleFunc("/*", makeETagHandler(currentTimestamp)).Methods("HEAD")
+		// router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
@@ -125,27 +147,4 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		log.Debug.Println(r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
-}
-
-func makeETagMiddleware(currentTimestamp string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Debug.Println("ETag Middleware: Current Timestamp:", currentTimestamp)
-			if r.Method != http.MethodHead {
-				next.ServeHTTP(w, r)
-				return
-			}
-			w.Header().Set("ETag", currentTimestamp)
-		})
-	}
-}
-
-func makeETagHandler(currentTimestamp string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Debug.Println("ETag Handler: Current Timestamp:", currentTimestamp)
-		if r.Method != http.MethodHead {
-			return
-		}
-		w.Header().Set("ETag", currentTimestamp)
-	}
 }
