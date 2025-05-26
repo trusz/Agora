@@ -7,11 +7,30 @@ import (
 )
 
 func RenderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-
-	layoutFile := "src/render/layout.html"
-	ts, err := template.ParseFiles(layoutFile, tmpl)
+	renderDir := "src/render"
+	templates, err := filepath.Glob(renderDir + "/*.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Add the specific template if it's not already included
+	alreadyIncluded := false
+	for _, t := range templates {
+		if t == tmpl {
+			alreadyIncluded = true
+			break
+		}
+	}
+
+	if !alreadyIncluded {
+		templates = append(templates, tmpl)
+	}
+
+	// Parse all templates
+	ts, err := template.ParseFiles(templates...)
+	if err != nil {
+		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

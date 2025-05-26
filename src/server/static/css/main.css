@@ -1,1 +1,20 @@
-@import url("./mvp.css")
+@import url("./mvp.css");
+
+:root {
+	--gray-1: #E5E5E5;
+	--gray-2: #DBDDE1;
+	--gray-3: #B3B3B8;
+}
+
+header{
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+}
+
+nav {
+	margin: 0;
+}
+
+main{
+	padding: 1rem;
+}

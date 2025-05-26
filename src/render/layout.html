@@ -5,24 +5,14 @@
 	<meta charset="UTF-8">
 	<meta name="viewport"
 		  content="width=device-width, initial-scale=1.0">
-	<title>{{ .Title }} - Go Templates Demo</title>
+	<title>{{ .Title }} - Agora</title>
 	<link rel="stylesheet"
 		  href="/static/css/main.css">
 </head>
 
 <body>
 	<header>
-		<nav>
-			<div class="container">
-				<h1>Go Templates Demo</h1>
-				<ul class="nav-links">
-					<li><a href="/about">About</a></li>
-					<li><a href="/posts/">Blog Post</a></li>
-					<li><a href="/posts/submit">Submit Post</a></li>
-					<li><a href="/settings">Settings</a></li>
-				</ul>
-			</div>
-		</nav>
+		{{ template "header.html" . }}
 	</header>
 
 	<main class="container">
@@ -32,7 +22,7 @@
 
 	<footer>
 		<div class="container">
-			<p>&copy; {{ .CurrentYear }} Go Templates Demo</p>
+			<p>&copy; 2025 Agora - SprintEins</p>
 		</div>
 	</footer>
 </body>

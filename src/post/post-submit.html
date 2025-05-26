@@ -15,6 +15,7 @@
 	<label>
 		<span>URL</span>
 		<input type="text"
+			   p
 			   name="url">
 	</label>
 	<label>
@@ -25,25 +26,5 @@
 	<button type="submit">Submit</button>
 	<span>* Required</span>
 </form>
-<style>
-	.post-submit-form {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		max-width: 400px;
-		margin: auto;
-		border: black 1px solid;
-		padding: 1rem;
-	}
 
-	.post-submit-form button {
-		width: 5rem;
-		align-self: flex-end;
-	}
-
-	.post-submit-form label {
-		display: flex;
-		flex-direction: column;
-	}
-</style>
 {{ end }}

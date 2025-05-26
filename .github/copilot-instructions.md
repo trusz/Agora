@@ -1,7 +1,7 @@
 - Use early returns if possible.
 - Use hyphen case in filenames.
 - No trivial comments.
-- Use `./prd.md` for the project requirements document
+<!-- - Use `./prd.md` for the project requirements document -->
 - Use as less external dependency as possible.
 - Use SQLite for the database.
 - Use Go.

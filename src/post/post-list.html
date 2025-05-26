@@ -4,15 +4,56 @@
 
 {{ define "content" }}
 <h1>Post list</h1>
-<ul>
-	{{ range .Data }}
-	<li>
-		<a href="{{ .URL }}">{{ .Title }}</a><br>
-		<small>{{ .Description }}</small><br>
-		<small>Created at: {{ .CreatedAt }}</small>
-	</li>
-	{{ else }}
-	<li>No posts found.</li>
-	{{ end }}
-</ul>
+<div class="post-list">
+	<ul>
+		{{ range .Data }}
+		<li>
+			<votes>
+
+			</votes>
+			<content>
+				<a href="{{ .URL }}">{{ .Title }}</a><br>
+				<small>{{ .Description }}</small><br>
+				<small>Created at: {{ .CreatedAt }}</small>
+			</content>
+		</li>
+		{{ else }}
+		<li>No posts found.</li>
+		{{ end }}
+	</ul>
+</div>
+<style>
+	.post-list {
+		ul {
+			list-style-type: none;
+			padding: 0;
+			display: grid;
+			gap: 0.75rem;
+		}
+
+		li {
+			display: grid;
+			grid-template-columns: 2rem 1fr;
+			border: var(--gray-1) 1px solid;
+			transition: all 0.2s ease-in-out;
+			gap: 0.5rem;
+			padding: 0;
+		}
+
+		li:hover {
+			border: var(--gray-3) 1px solid;
+		}
+
+		votes {
+			background: var(--gray-2);
+		}
+
+		content {
+			padding: 0.5rem;
+			display: flex;
+			gap: 0.5rem;
+			flex-direction: column;
+		}
+	}
+</style>
 {{ end }}

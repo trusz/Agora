@@ -42,7 +42,7 @@ func NewServer(
 	}
 }
 
-//go:embed static
+//go:embed static/*
 var staticFiles embed.FS
 
 // Start starts the server in a new goroutine
@@ -53,26 +53,6 @@ func (s *Server) Start() Stopper {
 	postHandler := post.NewPostHandler(db)
 	postHandler.CreateDBTable()
 
-	printEntries := func(path string, prefix string) {
-		entries, err := staticFiles.ReadDir(path)
-		if err != nil {
-			log.Error.Printf("failed to read %s: %v", path, err)
-			return
-		}
-		for _, entry := range entries {
-			fullName := prefix + entry.Name()
-			if entry.IsDir() {
-				log.Info.Println("dir :", fullName+"/")
-				printEntries(path+"/"+entry.Name(), fullName+"/")
-			} else {
-				log.Info.Println("file:", fullName)
-			}
-		}
-	}
-
-	log.Info.Println("static files embedded:")
-	printEntries("static", "")
-
 	go func() {
 		var router = mux.NewRouter()
 		fs := http.FileServer(http.FS(staticFiles))
@@ -80,11 +60,12 @@ func (s *Server) Start() Stopper {
 		//
 		// ROUTES
 		//
+		router.StrictSlash(true)
 		router.Use(loggingMiddleware)
-		// router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
-		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+		router.PathPrefix("/static/").Handler(fs)
+
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
-		router.HandleFunc("/posts", postHandler.PostListHandler).Methods("GET")
+		router.HandleFunc("/posts/", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 

@@ -1,0 +1,20 @@
+{{define "header.html"}}
+<nav id="main-nav">
+	<h1>Agora</h1>
+	<ul class="nav-links">
+		<li><a href="/posts/">Blog Post</a></li>
+		<li><a href="/posts/submit">Submit Post</a></li>
+		<li><a href="/settings">Settings</a></li>
+		<li><a href="/about">About</a></li>
+	</ul>
+</nav>
+<style>
+	#main-nav {
+		padding: 0.5rem 0;
+
+		display: flex;
+		justify-content: space-between;
+		background-color: none;
+	}
+</style>
+{{end}}
