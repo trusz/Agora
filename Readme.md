@@ -1,1 +1,1 @@
-<p align="center"><h1>Agora</h1></p>
+<h1 align="center">Agora</h1>

@@ -1,0 +1,26 @@
+{{ define "login.html" }}
+{{ template "layout.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<section class="login-section">
+	<div class="auth-container">
+		<h2>Login to Agora</h2>
+		<p>Agora uses Microsoft Office 365 for secure authentication.</p>
+
+		<div class="login-options">
+			<a href="/login"
+			   class="btn btn-primary auth-button">
+				<img src="/static/images/microsoft-logo.svg"
+					 alt="Microsoft Logo"
+					 class="auth-icon">
+				Sign in with Microsoft
+			</a>
+		</div>
+
+		<div class="auth-info">
+			<p>Don't have an Office 365 account? Contact your administrator.</p>
+		</div>
+	</div>
+</section>
+{{ end }}
