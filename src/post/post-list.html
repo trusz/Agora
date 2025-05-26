@@ -4,17 +4,15 @@
 
 {{ define "content" }}
 <h1>Post list</h1>
-<!-- <article class="blog-post">
-	{{ with .Data }}
-	<div class="post-meta">
-		<p class="author">By: {{ .Author }}</p>
-	</div>
-	<div class="post-content">
-		<p>{{ .Content }}</p>
-	</div>
-	<div class="post-footer">
-		<p>Thanks for reading!</p>
-	</div>
+<ul>
+	{{ range .Data }}
+	<li>
+		<a href="{{ .URL }}">{{ .Title }}</a><br>
+		<small>{{ .Description }}</small><br>
+		<small>Created at: {{ .CreatedAt }}</small>
+	</li>
+	{{ else }}
+	<li>No posts found.</li>
 	{{ end }}
-</article> -->
+</ul>
 {{ end }}

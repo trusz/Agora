@@ -5,9 +5,12 @@ import (
 	"net/http"
 )
 
-func PostListHandler(w http.ResponseWriter, r *http.Request) {
+func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
+
+	posts, _ := ph.QueryAllPosts()
+
 	render.RenderTemplate(w, "src/post/post-list.html", &render.Page{
 		Title: "Posts",
-		Data:  nil,
+		Data:  posts,
 	})
 }

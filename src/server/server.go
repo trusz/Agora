@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"fmt"
@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"goazuread/src/db"
 	"goazuread/src/log"
 	"goazuread/src/post"
 
@@ -44,6 +46,12 @@ func NewServer(
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
 
+	db, _ := db.Open("tmp/agora_local.db")
+	postHandler := post.NewPostHandler(db)
+	postHandler.CreateDBTable()
+
+	currentTimestamp := fmt.Sprintf("%d", time.Now().Unix())
+
 	go func() {
 		var router = mux.NewRouter()
 
@@ -51,8 +59,12 @@ func (s *Server) Start() Stopper {
 		// ROUTES
 		//
 		router.Use(loggingMiddleware)
-		router.HandleFunc("/", post.PostListHandler).Methods("GET")
-		router.HandleFunc("/posts", post.PostListHandler).Methods("GET")
+		router.Use(makeETagMiddleware(currentTimestamp))
+		router.HandleFunc("/*", makeETagHandler(currentTimestamp)).Methods("HEAD")
+		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
+		router.HandleFunc("/posts", postHandler.PostListHandler).Methods("GET")
+		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
+		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 
 		var address = fmt.Sprintf("%s:%s", s.host, s.port)
 		s.server = &http.Server{Addr: address, Handler: router}
@@ -108,14 +120,32 @@ func (s *Server) WaitTilRunning() {
 	<-s.stopped
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "API is running")
-
-}
-
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Debug.Println(r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
+}
+
+func makeETagMiddleware(currentTimestamp string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Debug.Println("ETag Middleware: Current Timestamp:", currentTimestamp)
+			if r.Method != http.MethodHead {
+				next.ServeHTTP(w, r)
+				return
+			}
+			w.Header().Set("ETag", currentTimestamp)
+		})
+	}
+}
+
+func makeETagHandler(currentTimestamp string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Debug.Println("ETag Handler: Current Timestamp:", currentTimestamp)
+		if r.Method != http.MethodHead {
+			return
+		}
+		w.Header().Set("ETag", currentTimestamp)
+	}
 }

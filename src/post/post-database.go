@@ -1,7 +1,5 @@
 package post
 
-import "goazuread/src/db"
-
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
@@ -11,11 +9,51 @@ const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 	);
 	`
 
-func CreateDBTable(db *db.DB) error {
+func (ph *PostHandler) CreateDBTable() error {
 	// Create the posts table if it doesn't exist
-	_, err := db.Exec(TABLE_QUERY)
+	_, err := ph.db.Exec(TABLE_QUERY)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
+	// Insert a new post into the database
+	result, err := ph.db.Exec("INSERT INTO posts (title, url, description) VALUES (?, ?, ?)", p.Title, p.URL, p.Description)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
+	// Query all posts from the database
+	rows, err := ph.db.Query("SELECT id, title, url, description, created_at FROM posts")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []Post
+	for rows.Next() {
+		var id int64
+		var title, url, description string
+		var createdAt string
+
+		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
+			return nil, err
+		}
+
+		post := Post{
+			ID:          int(id),
+			Title:       title,
+			URL:         url,
+			Description: description,
+			CreatedAt:   createdAt,
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, nil
 }

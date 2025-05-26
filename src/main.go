@@ -1,7 +1,7 @@
 package main
 
-import "goazuread/src/app"
+import "goazuread/src/server"
 
 func main() {
-	app.Run()
+	server.Run()
 }
