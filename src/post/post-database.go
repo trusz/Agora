@@ -1,11 +1,14 @@
 package post
 
+import "goazuread/src/log"
+
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
 		url TEXT NOT NULL UNIQUE,
 		description TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		owner_id TEXT NOT NULL
 	);
 	`
 
@@ -13,6 +16,7 @@ func (ph *PostHandler) CreateDBTable() error {
 	// Create the posts table if it doesn't exist
 	_, err := ph.db.Exec(TABLE_QUERY)
 	if err != nil {
+		log.Error.Printf("Error creating posts table: %v", err)
 		return err
 	}
 	return nil
@@ -22,6 +26,7 @@ func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 	// Insert a new post into the database
 	result, err := ph.db.Exec("INSERT INTO posts (title, url, description) VALUES (?, ?, ?)", p.Title, p.URL, p.Description)
 	if err != nil {
+		log.Error.Printf("Error inserting new post: %v", err)
 		return 0, err
 	}
 	return result.LastInsertId()
