@@ -1,0 +1,19 @@
+{{ define "post-detail.html" }}
+{{ template "layout.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<small><a href="/posts">← Back to all posts</a></small>
+<h1>{{ .Data.Title }} [ {{ .Data.ID }} ]</h1>
+<small>
+	<a href="{{ .Data.URL }}">{{ .Data.URL }}</a> ·
+	Posted by {{ .Data.OwnerID }} on {{ .Data.CreatedAt }}
+</small>
+<p>
+	{{ .Data.Description }}
+</p>
+
+<style>
+
+</style>
+{{ end }}

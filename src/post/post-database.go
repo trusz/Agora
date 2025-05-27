@@ -24,12 +24,45 @@ func (ph *PostHandler) CreateDBTable() error {
 
 func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 	// Insert a new post into the database
-	result, err := ph.db.Exec("INSERT INTO posts (title, url, description) VALUES (?, ?, ?)", p.Title, p.URL, p.Description)
+	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, owner_id) VALUES (?, ?, ?, ?)", p.Title, p.URL, p.Description, p.OwnerID)
 	if err != nil {
 		log.Error.Printf("Error inserting new post: %v", err)
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
+	rows, err := ph.db.Query("SELECT id, title, url, description, created_at FROM posts WHERE id = ?", id)
+	if err != nil {
+		log.Error.Println("Could not query post with id=", id)
+		return Post{}, err
+	}
+	defer rows.Close()
+
+	var post Post
+	for rows.Next() {
+		var id int64
+		var title, url, description, createdAt string
+
+		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
+			log.Error.Println("Could not scan post with id=", id)
+			return Post{}, err
+		}
+
+		post = Post{
+			ID:          int(id),
+			Title:       title,
+			URL:         url,
+			Description: description,
+			CreatedAt:   createdAt,
+		}
+		return post, nil
+	}
+
+	log.Debug.Println("no post found")
+	return Post{}, nil
+
 }
 
 func (ph *PostHandler) QueryAllPosts() ([]Post, error) {

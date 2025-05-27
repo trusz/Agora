@@ -12,9 +12,12 @@
 
 			</votes>
 			<content>
-				<a href="{{ .URL }}">{{ .Title }}</a><br>
-				<small>{{ .Description }}</small><br>
-				<small>Created at: {{ .CreatedAt }}</small>
+				<a href="{{ .URL }}">{{ .Title }}</a>
+				<small><a href="/posts/{{ .ID }}">{{ .Description }}</a></small>
+				<small>
+					<a href="/posts/{{ .ID }}">43 Comments</a>
+					Created at: {{ .CreatedAt }}
+				</small>
 			</content>
 		</li>
 		{{ else }}
@@ -24,6 +27,7 @@
 </div>
 <style>
 	.post-list {
+
 		ul {
 			list-style-type: none;
 			padding: 0;
@@ -53,6 +57,11 @@
 			display: flex;
 			gap: 0.5rem;
 			flex-direction: column;
+		}
+
+		small>a {
+			color: var(--gray-5);
+			text-decoration: none;
 		}
 	}
 </style>

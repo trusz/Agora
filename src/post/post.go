@@ -6,4 +6,5 @@ type Post struct {
 	URL         string
 	Description string
 	CreatedAt   string
+	OwnerID     string
 }

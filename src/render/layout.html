@@ -15,16 +15,57 @@
 		{{ template "header.html" . }}
 	</header>
 
-	<main class="container">
-		<h2>{{ .Title }}</h2>
+	<main>
 		{{ template "content" . }}
 	</main>
 
 	<footer>
-		<div class="container">
+		<div>
 			<p>&copy; 2025 Agora - SprintEins</p>
 		</div>
 	</footer>
 </body>
+<style>
+	body {
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		grid-template-columns: 1fr;
+		min-height: 100vh;
+		margin: 0;
+		width: 100%;
+
+		font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+	}
+
+	body h1 {
+		font-weight: 250;
+	}
+
+	body>* {
+		max-width: unset;
+		margin: 0;
+	}
+
+	header {
+		border-bottom: var(--gray-1) 1px solid;
+		padding: 0 1rem;
+		margin: 0;
+	}
+
+	main {
+		overflow-y: auto;
+		padding: 0 1rem;
+		width: 80%;
+		justify-self: center;
+	}
+
+	footer {
+		background-color: #333;
+		color: white;
+		text-align: center;
+		padding: 1rem;
+	}
+</style>
 
 </html>

@@ -42,7 +42,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behvior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {

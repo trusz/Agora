@@ -68,6 +68,7 @@ func (s *Server) Start() Stopper {
 		router.HandleFunc("/posts/", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
+		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
 
 		var address = fmt.Sprintf("%s:%s", s.host, s.port)
 		s.server = &http.Server{Addr: address, Handler: router}

@@ -6,15 +6,10 @@
 	--gray-3: #B3B3B8;
 }
 
-header{
-	padding-top: 1rem;
-	padding-bottom: 1rem;
-}
 
-nav {
-	margin: 0;
-}
 
-main{
-	padding: 1rem;
+
+a[href^="/"] {
+	color: var(--gray-3) !important;
+	text-decoration: none;
 }
