@@ -11,6 +11,7 @@ import (
 	"goazuread/src/db"
 	"goazuread/src/log"
 	"goazuread/src/post"
+	"goazuread/src/render"
 
 	"github.com/gorilla/mux"
 )
@@ -49,6 +50,7 @@ var staticFiles embed.FS
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
 
+	render.PreRenderAllHTML()
 	db, _ := db.Open("tmp/agora_local.db")
 	postHandler := post.NewPostHandler(db)
 	postHandler.CreateDBTable()

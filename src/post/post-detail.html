@@ -14,7 +14,9 @@
 </p>
 
 
-<form id="post-comment">
+<form id="post-comment"
+	  action="/posts/{{ .Data.ID }}/comment"
+	  method="POST">
 	<label>
 		<span>Comment</span>
 		<textarea name="comment"

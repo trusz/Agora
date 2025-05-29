@@ -22,7 +22,7 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 
 	log.Debug.Printf("found post: %#v\n", post)
 
-	render.RenderTemplate(w, "src/post/post-detail.html", &render.Page{
+	render.RenderTemplateV2(w, "post-detail.html", &render.Page{
 		Title: "Post Detail",
 		Data:  post,
 	})
