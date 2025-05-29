@@ -3,7 +3,14 @@
 {{ end }}
 
 {{ define "content" }}
-<form class="post-submit-form"
+<p>
+<h4>Share with the Agora</h4>
+<small>
+	share your ideas, thoughs or
+	interesting links withe the community
+</small>
+</p>
+<form id="post-submit-form"
 	  action="/posts/submit"
 	  method="POST">
 	<label>
@@ -26,5 +33,12 @@
 	<button type="submit">Submit</button>
 	<span>* Required</span>
 </form>
+
+<style>
+	label {
+		display: flex;
+		flex-direction: column;
+	}
+</style>
 
 {{ end }}

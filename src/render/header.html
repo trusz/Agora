@@ -2,7 +2,7 @@
 <nav id="main-nav">
 	<h1>Agora</h1>
 	<ul class="nav-links">
-		<li><a href="/posts/">Blog Post</a></li>
+		<li><a href="/posts/">Posts</a></li>
 		<li><a href="/posts/submit">Submit Post</a></li>
 		<li><a href="/settings">Settings</a></li>
 		<li><a href="/about">About</a></li>
@@ -11,14 +11,29 @@
 <style>
 	#main-nav {
 
+		align-items: center;
 		display: flex;
+		font-weight: bold;
 		justify-content: space-between;
 		background-color: none;
-
 		margin: 0;
+
 
 		h1 {
 			font-weight: 250;
+		}
+
+
+		ul {
+			list-style: none;
+			padding: 0;
+		}
+
+		ul li {
+			display: inline-block;
+			margin: 0 0.5rem;
+			position: relative;
+			text-align: left;
 		}
 	}
 </style>

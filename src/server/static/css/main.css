@@ -1,4 +1,5 @@
 @import url("./mvp.css");
+@import url("./global.css");
 
 :root {
 	--gray-1: #E5E5E5;
@@ -7,9 +8,17 @@
 }
 
 
-
-
 a[href^="/"] {
-	color: var(--gray-3) !important;
+	color: var(--accent-foreground);
 	text-decoration: none;
+}
+
+a[href^="/"]:hover{
+	/* color var(--gray-1): */
+	background-color: var(--accent);
+}
+
+h4{
+	margin:0;
+	padding:0;
 }
