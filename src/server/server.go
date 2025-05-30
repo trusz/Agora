@@ -1,9 +1,12 @@
 package server
 
 import (
+	"context"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,10 +16,28 @@ import (
 	"agora/src/log"
 	"agora/src/post"
 	"agora/src/post/comment"
+	"agora/src/user"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
 )
+
+// MSGraphUser represents a user object returned by Microsoft Graph API
+type MSGraphUser struct {
+	ODataContext      string   `json:"@odata.context"`
+	BusinessPhones    []string `json:"businessPhones"`
+	DisplayName       string   `json:"displayName"`
+	GivenName         string   `json:"givenName"`
+	JobTitle          *string  `json:"jobTitle"`
+	Mail              string   `json:"mail"`
+	MobilePhone       *string  `json:"mobilePhone"`
+	OfficeLocation    *string  `json:"officeLocation"`
+	PreferredLanguage string   `json:"preferredLanguage"`
+	Surname           string   `json:"surname"`
+	UserPrincipalName string   `json:"userPrincipalName"`
+	ID                string   `json:"id"`
+}
 
 // Server provides an http server wrap around services
 type Server struct {
@@ -52,13 +73,9 @@ var staticFiles embed.FS
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
 
-	azureConfigs, err := LoadAzureConfig()
-	if err != nil {
-		log.Debug.Fatalf("msg='could not load azure config' err='%s'\n", err.Error())
-	}
-	log.Debug.Printf("msg='azure config loaded' tenantID='%s' clientID='%s'", azureConfigs.TenantID, azureConfigs.ClientID)
-
 	db, _ := db.Open("tmp/agora_local.db")
+	userHandler := user.NewUserHandler(db)
+	userHandler.CreateDBTable()
 	commentHandler := comment.NewCommentHandler(db)
 	commentHandler.CreateDBTable()
 	postHandler := post.NewPostHandler(db, commentHandler)
@@ -75,7 +92,11 @@ func (s *Server) Start() Stopper {
 		router.Use(loggingMiddleware)
 		router.PathPrefix("/static/").Handler(fs)
 
+		router.HandleFunc("/", makeHandleCallback(postHandler.PostListHandler, userHandler)).Methods("GET")
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
+
+		router.HandleFunc("/login", startLogin).Methods("GET")
+
 		router.HandleFunc("/posts/", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
@@ -98,8 +119,79 @@ func (s *Server) Start() Stopper {
 	return s.Stop
 }
 
+func makeOuath2Config() *oauth2.Config {
+	config, err := LoadAzureConfig()
+	if err != nil {
+		log.Error.Fatalf("msg='could not load azure config' err='%s'\n", err.Error())
+	}
+
+	return &oauth2.Config{
+		ClientID:     config.ClientID,
+		ClientSecret: config.ClientSecret,
+		RedirectURL:  "http://localhost:54324/", //  in my case RedirectURL:  "http://localhost:8080/callback"
+		Scopes:       []string{"User.Read"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/authorize",
+			TokenURL: "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/token",
+		},
+	}
+}
+
+func startLogin(w http.ResponseWriter, r *http.Request) {
+	oauth2Config := makeOuath2Config()
+	url := oauth2Config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
+func makeHandleCallback(fallbackCallback http.HandlerFunc, userHandler *user.UserHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		oauth2Config := makeOuath2Config()
+		code := r.URL.Query().Get("code")
+		log.Debug.Printf("msg='received callback' code='%s'\n", code)
+		if code == "" {
+			fallbackCallback(w, r)
+			return
+		}
+
+		token, err := oauth2Config.Exchange(context.Background(), code)
+		if err != nil {
+			http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Debug.Printf("msg='token received' token='%s'\n", token.AccessToken)
+
+		client := oauth2Config.Client(context.Background(), token)
+		resp, err := client.Get("https://graph.microsoft.com/v1.0/me")
+		if err != nil {
+			http.Error(w, "Failed to get user info: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, "Failed to read user info: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Unmarshal the JSON data into the MSGraphUser struct
+		var user MSGraphUser
+		if err := json.Unmarshal(data, &user); err != nil {
+			http.Error(w, "Failed to parse user info: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		log.Pretty(user)
+		if !userHandler.UserExists(user.ID) {
+			userHandler.AddUser(user.ID, user.DisplayName, user.Mail)
+		}
+		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+
+	}
+}
+
 // Stops the server
-// Useres can wait until the server is stopped:
+// Users can wait until the server is stopped:
 // ```go
 // s := s.NewServer("localhost","8080")
 // someOtherFunc()

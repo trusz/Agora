@@ -44,7 +44,7 @@ var (
 		log.Ldate|log.Ltime|log.Lshortfile,
 	)
 	// Pretty _
-	Pretty = func(template string, objs ...interface{}) {
+	Pretty = func(objs ...interface{}) {
 		prettyString, err := json.MarshalIndent(objs, "", "  ")
 		if err != nil {
 			Error.Printf("error: %s", err)

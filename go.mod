@@ -15,6 +15,7 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 )
 
 require (

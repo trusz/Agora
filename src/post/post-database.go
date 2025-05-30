@@ -12,7 +12,7 @@ const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		url TEXT UNIQUE,
 		description TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		owner_id TEXT NOT NULL
+		user_id TEXT NOT NULL
 	);
 	`
 
