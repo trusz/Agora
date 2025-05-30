@@ -2,6 +2,7 @@ package server
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"agora/src/post/comment"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 // Server provides an http server wrap around services
@@ -49,6 +51,12 @@ var staticFiles embed.FS
 // Start starts the server in a new goroutine
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
+
+	azureConfigs, err := LoadAzureConfig()
+	if err != nil {
+		log.Debug.Fatalf("msg='could not load azure config' err='%s'\n", err.Error())
+	}
+	log.Debug.Printf("msg='azure config loaded' tenantID='%s' clientID='%s'", azureConfigs.TenantID, azureConfigs.ClientID)
 
 	db, _ := db.Open("tmp/agora_local.db")
 	commentHandler := comment.NewCommentHandler(db)
@@ -133,4 +141,39 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		log.Debug.Println(r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
+}
+
+type AzureConfig struct {
+	TenantID     string
+	ClientID     string
+	ClientSecret string
+}
+
+func LoadAzureConfig() (AzureConfig, error) {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Error.Fatalf("msg='could not load .env file' err='%s'\n", err.Error())
+	}
+
+	tenantID := os.Getenv("AZURE_TENANT_ID")
+	if tenantID == "" {
+		return AzureConfig{}, errors.New("missing AZURE_TENANT_ID environment variable")
+	}
+
+	clientID := os.Getenv("AZURE_CLIENT_ID")
+	if clientID == "" {
+		return AzureConfig{}, errors.New("missing AZURE_CLIENT_ID environment variable")
+	}
+
+	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
+	if clientSecret == "" {
+		return AzureConfig{}, errors.New("missing AZURE_CLIENT_SECRET environment variable")
+	}
+
+	return AzureConfig{
+		TenantID:     tenantID,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	}, nil
 }
