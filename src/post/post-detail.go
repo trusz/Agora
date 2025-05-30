@@ -1,8 +1,8 @@
 package post
 
 import (
-	"agora/src/comment"
 	"agora/src/log"
+	"agora/src/post/comment"
 	"agora/src/render"
 	"net/http"
 	"strconv"
@@ -51,8 +51,8 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		w,
 		"src/post/post-detail.html",
 		pageData,
-		"src/post/post-detail-comment-form.html",
-		"src/post/post-detail-comment-list.html",
+		"src/post/comment/comment-form.html",
+		"src/post/comment/comment-list.html",
 	)
 }
 

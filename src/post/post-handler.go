@@ -1,8 +1,8 @@
 package post
 
 import (
-	"agora/src/comment"
 	"agora/src/db"
+	"agora/src/post/comment"
 )
 
 type PostHandler struct {

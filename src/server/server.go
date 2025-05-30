@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"agora/src/comment"
 	"agora/src/db"
 	"agora/src/log"
 	"agora/src/post"
+	"agora/src/post/comment"
 
 	"github.com/gorilla/mux"
 )
