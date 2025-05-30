@@ -7,12 +7,17 @@
 <div class="post-list">
 	<ul>
 		{{ range .Data }}
-		<li>
+		<li id="post-{{ .ID }}">
 			<votes>
 
 			</votes>
 			<content>
-				<a href="{{ .URL }}">{{ .Title }}</a>
+				{{ if .URL }}
+				<small><a href="{{ .URL }}">{{ .Title }}</a></small>
+				{{ else }}
+				<small><a href="/posts/{{ .ID }}">{{ .Title }}</a></small>
+				{{ end }}
+
 				<small><a href="/posts/{{ .ID }}">{{ .Description }}</a></small>
 				<small>
 					<a href="/posts/{{ .ID }}">43 Comments</a>

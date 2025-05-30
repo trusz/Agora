@@ -1,8 +1,10 @@
 package post
 
 import (
+	"agora/src/log"
 	"agora/src/render"
 	"net/http"
+	"strconv"
 )
 
 func (ph *PostHandler) PostSubmitGETHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +30,12 @@ func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Requ
 		Description: desc,
 	}
 
-	ph.InsertNewPost(newPost)
+	newPostID, err := ph.InsertNewPost(newPost)
+	if err != nil {
+		log.Error.Printf("msg='could not create new post' err='%s'\n", err.Error())
+		http.Error(w, "Could not insert create post: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	http.Redirect(w, r, "/posts", http.StatusSeeOther)
+	http.Redirect(w, r, "/posts#post-"+strconv.Itoa(int(newPostID)), http.StatusSeeOther)
 }

@@ -1,11 +1,14 @@
 package post
 
-import "agora/src/log"
+import (
+	"agora/src/log"
+	"database/sql"
+)
 
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
-		url TEXT NOT NULL UNIQUE,
+		url TEXT UNIQUE,
 		description TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		owner_id TEXT NOT NULL
@@ -24,7 +27,14 @@ func (ph *PostHandler) CreateDBTable() error {
 
 func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 	// Insert a new post into the database
-	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, owner_id) VALUES (?, ?, ?, ?)", p.Title, p.URL, p.Description, p.OwnerID)
+	var url interface{}
+	if p.URL == "" {
+		url = nil
+	} else {
+		url = p.URL
+	}
+
+	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, owner_id) VALUES (?, ?, ?, ?)", p.Title, url, p.Description, p.OwnerID)
 	if err != nil {
 		log.Error.Printf("Error inserting new post: %v", err)
 		return 0, err
@@ -43,17 +53,24 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 	var wantedPost Post
 	for rows.Next() {
 		var id int64
-		var title, url, description, createdAt string
+		var title string
+		var description string
+		var createdAt string
+		var url sql.NullString
 
 		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
 			log.Error.Println("Could not scan post with id=", id)
 			return PostNull, err
 		}
+		var urlStr string
+		if url.Valid {
+			urlStr = url.String
+		}
 
 		wantedPost = Post{
 			ID:          int(id),
 			Title:       title,
-			URL:         url,
+			URL:         urlStr,
 			Description: description,
 			CreatedAt:   createdAt,
 		}
@@ -76,17 +93,26 @@ func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var id int64
-		var title, url, description string
+		var title string
+		var description string
 		var createdAt string
+		var url sql.NullString
 
 		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
 			return nil, err
 		}
 
+		var urlStr string
+		if url.Valid {
+			urlStr = url.String
+		}
+
+		log.Debug.Printf("msg='post found' id=%d title='%s' url='%s' description='%s' created_at='%s'\n", id, title, urlStr, description, createdAt)
+
 		post := Post{
 			ID:          int(id),
 			Title:       title,
-			URL:         url,
+			URL:         urlStr,
 			Description: description,
 			CreatedAt:   createdAt,
 		}

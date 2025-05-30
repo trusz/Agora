@@ -4,7 +4,7 @@
 	{{ range .Data.Comments }}
 	<li id="comment-{{ .ID }}">
 		<p><small>{{ .UserID }} · {{ .CreatedAt }}</small> </p>
-		<p>{{ .Text }}</p>
+		<pre>{{ .Text }}</pre>
 	</li>
 
 	{{ else }}
