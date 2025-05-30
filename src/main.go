@@ -1,6 +1,6 @@
 package main
 
-import "goazuread/src/server"
+import "agora/src/server"
 
 func main() {
 	server.Run()

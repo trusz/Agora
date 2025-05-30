@@ -1,7 +1,7 @@
 package post
 
 import (
-	"goazuread/src/render"
+	"agora/src/render"
 	"net/http"
 )
 

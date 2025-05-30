@@ -8,9 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"goazuread/src/db"
-	"goazuread/src/log"
-	"goazuread/src/post"
+	"agora/src/comment"
+	"agora/src/db"
+	"agora/src/log"
+	"agora/src/post"
 
 	"github.com/gorilla/mux"
 )
@@ -50,7 +51,9 @@ var staticFiles embed.FS
 func (s *Server) Start() Stopper {
 
 	db, _ := db.Open("tmp/agora_local.db")
-	postHandler := post.NewPostHandler(db)
+	commentHandler := comment.NewCommentHandler(db)
+	commentHandler.CreateDBTable()
+	postHandler := post.NewPostHandler(db, commentHandler)
 	postHandler.CreateDBTable()
 
 	go func() {
@@ -69,6 +72,7 @@ func (s *Server) Start() Stopper {
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
+		router.HandleFunc("/posts/{id}/comment", postHandler.PostCommentPOSTHandler).Methods("POST")
 
 		var address = fmt.Sprintf("%s:%s", s.host, s.port)
 		s.server = &http.Server{Addr: address, Handler: router}

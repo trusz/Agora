@@ -1,4 +1,4 @@
-module goazuread
+module agora
 
 go 1.24.3
 

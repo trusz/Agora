@@ -4,30 +4,18 @@
 
 {{ define "content" }}
 <small><a href="/posts">← Back to all posts</a></small>
-<h1>{{ .Data.Title }} [ {{ .Data.ID }} ]</h1>
+<h1>{{ .Data.Post.Title }} [ {{ .Data.Post.ID }} ]</h1>
 <small>
-	<a href="{{ .Data.URL }}">{{ .Data.URL }}</a> ·
-	Posted by {{ .Data.OwnerID }} on {{ .Data.CreatedAt }}
+	<a href="{{ .Data.Post.URL }}">{{ .Data.Post.URL }}</a> ·
+	Posted by {{ .Data.Post.OwnerID }} on {{ .Data.Post.CreatedAt }}
 </small>
 <p>
-	{{ .Data.Description }}
+	{{ .Data.Post.Description }}
 </p>
 
+{{ template "post-detail-comment-form.html" . }}
 
-<form id="post-comment"
-	  action="/posts/{{ .Data.ID }}/comment"
-	  method="POST">
-	<label>
-		<span>Comment</span>
-		<textarea name="comment"
-				  placeholder="Write your comment here..."
-				  rows="5"
-				  required></textarea>
-	</label>
-	<button type="submit">Submit Comment</button>
-</form>
+{{ template "post-detail-comment-list.html" . }}
 
-<style>
 
-</style>
 {{ end }}

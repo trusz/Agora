@@ -8,3 +8,7 @@ type Post struct {
 	CreatedAt   string
 	OwnerID     string
 }
+
+var PostNull = Post{
+	ID: -1,
+}

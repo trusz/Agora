@@ -1,6 +1,6 @@
 package post
 
-import "goazuread/src/log"
+import "agora/src/log"
 
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,28 +40,28 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 	}
 	defer rows.Close()
 
-	var post Post
+	var wantedPost Post
 	for rows.Next() {
 		var id int64
 		var title, url, description, createdAt string
 
 		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
 			log.Error.Println("Could not scan post with id=", id)
-			return Post{}, err
+			return PostNull, err
 		}
 
-		post = Post{
+		wantedPost = Post{
 			ID:          int(id),
 			Title:       title,
 			URL:         url,
 			Description: description,
 			CreatedAt:   createdAt,
 		}
-		return post, nil
+		return wantedPost, nil
 	}
 
 	log.Debug.Println("no post found")
-	return Post{}, nil
+	return PostNull, nil
 
 }
 

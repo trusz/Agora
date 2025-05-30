@@ -1,0 +1,28 @@
+{{ define "post-detail-comment-list.html" }}
+13 Comments
+<ul id="comment-list">
+	{{ range .Data.Comments }}
+	<li id="comment-{{ .ID }}">
+		<p><small>{{ .UserID }} · {{ .CreatedAt }}</small> </p>
+		<p>{{ .Text }}</p>
+	</li>
+
+	{{ else }}
+	<span>No comments yet. Be the first!</span>
+	{{ end }}
+</ul>
+<style>
+	#comment-list {
+		list-style-type: none;
+		padding: 0;
+		display: grid;
+		gap: 0.75rem;
+
+
+		li {
+			padding: 0.5rem;
+		}
+	}
+</style>
+
+{{end}}
