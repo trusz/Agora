@@ -4,6 +4,7 @@ import (
 	"agora/src/log"
 	"agora/src/post/comment"
 	"agora/src/render"
+	"agora/src/x/sanitize"
 	"net/http"
 	"strconv"
 
@@ -73,7 +74,7 @@ func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	newCommentText := r.FormValue("comment")
+	newCommentText := sanitize.Sanitize(r.FormValue("comment"))
 
 	newCommentID, err := ph.ch.AddNewComment(postID, newCommentText, -1)
 	if err != nil {

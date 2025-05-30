@@ -3,6 +3,7 @@ package post
 import (
 	"agora/src/log"
 	"agora/src/render"
+	"agora/src/x/sanitize"
 	"net/http"
 	"strconv"
 )
@@ -20,9 +21,9 @@ func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	title := r.FormValue("title")
-	url := r.FormValue("url")
-	desc := r.FormValue("description")
+	title := sanitize.Sanitize(r.FormValue("title"))
+	url := sanitize.Sanitize(r.FormValue("url"))
+	desc := sanitize.Sanitize(r.FormValue("description"))
 
 	newPost := Post{
 		Title:       title,

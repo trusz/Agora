@@ -2,6 +2,7 @@ package post
 
 import (
 	"agora/src/log"
+	"agora/src/x/sanitize"
 	"database/sql"
 )
 
@@ -69,9 +70,9 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 
 		wantedPost = Post{
 			ID:          int(id),
-			Title:       title,
-			URL:         urlStr,
-			Description: description,
+			Title:       sanitize.Sanitize(title),
+			URL:         sanitize.Sanitize(urlStr),
+			Description: sanitize.Sanitize(description),
 			CreatedAt:   createdAt,
 		}
 		return wantedPost, nil
@@ -111,9 +112,9 @@ func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 
 		post := Post{
 			ID:          int(id),
-			Title:       title,
-			URL:         urlStr,
-			Description: description,
+			Title:       sanitize.Sanitize(title),
+			URL:         sanitize.Sanitize(urlStr),
+			Description: sanitize.Sanitize(description),
 			CreatedAt:   createdAt,
 		}
 		posts = append(posts, post)

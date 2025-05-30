@@ -1,6 +1,9 @@
 package comment
 
-import "agora/src/log"
+import (
+	"agora/src/log"
+	"agora/src/x/sanitize"
+)
 
 const TABLE_QUERY = `
 	CREATE TABLE IF NOT EXISTS "comments" (
@@ -55,7 +58,7 @@ func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]Comment, error
 
 		comment := Comment{
 			ID:        int(id),
-			Text:      text,
+			Text:      sanitize.Sanitize(text),
 			PostID:    postID,
 			UserID:    userID,
 			CreatedAt: createdAt,
