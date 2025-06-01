@@ -4,6 +4,7 @@ import (
 	"agora/src/log"
 	"agora/src/post/comment"
 	"agora/src/render"
+	"agora/src/server/auth"
 	"agora/src/x/sanitize"
 	"net/http"
 	"strconv"
@@ -58,6 +59,12 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Request) {
+	loggedInUser, ok := auth.ExtractUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	varPostID := vars["id"]
 
@@ -67,6 +74,7 @@ func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Req
 			"msg='could not convert postid from string to int' postID='%s'\n",
 			varPostID)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	if err := r.ParseForm(); err != nil {
@@ -76,7 +84,7 @@ func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Req
 
 	newCommentText := sanitize.Sanitize(r.FormValue("comment"))
 
-	newCommentID, err := ph.ch.AddNewComment(postID, newCommentText, -1)
+	newCommentID, err := ph.ch.AddNewComment(postID, newCommentText, loggedInUser.ID)
 	if err != nil {
 		log.Error.Printf("msg='could not add new comment' postID='%d' err='%s'\n", postID, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

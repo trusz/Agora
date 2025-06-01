@@ -14,7 +14,7 @@ func NewCommentHandler(db *db.DB) *CommentHandler {
 
 }
 
-func (ch *CommentHandler) AddNewComment(postID int, text string, userID int) (int, error) {
+func (ch *CommentHandler) AddNewComment(postID int, text string, userID string) (int, error) {
 	newComment := Comment{
 		Text:   text,
 		PostID: postID,

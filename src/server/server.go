@@ -13,28 +13,12 @@ import (
 	"agora/src/log"
 	"agora/src/post"
 	"agora/src/post/comment"
+	"agora/src/server/auth"
 	"agora/src/user"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"golang.org/x/oauth2"
 )
-
-// MSGraphUser represents a user object returned by Microsoft Graph API
-type MSGraphUser struct {
-	ODataContext      string   `json:"@odata.context"`
-	BusinessPhones    []string `json:"businessPhones"`
-	DisplayName       string   `json:"displayName"`
-	GivenName         string   `json:"givenName"`
-	JobTitle          *string  `json:"jobTitle"`
-	Mail              string   `json:"mail"`
-	MobilePhone       *string  `json:"mobilePhone"`
-	OfficeLocation    *string  `json:"officeLocation"`
-	PreferredLanguage string   `json:"preferredLanguage"`
-	Surname           string   `json:"surname"`
-	UserPrincipalName string   `json:"userPrincipalName"`
-	ID                string   `json:"id"`
-}
 
 // Server provides an http server wrap around services
 type Server struct {
@@ -70,11 +54,26 @@ var staticFiles embed.FS
 // and returns a Stopper function
 func (s *Server) Start() Stopper {
 
+	env := LoadEnv()
+	address := fmt.Sprintf("%s:%s", s.host, s.port)
+
 	db, _ := db.Open("tmp/agora_local.db")
 	userHandler := user.NewUserHandler(db)
 	userHandler.CreateDBTable()
+
+	// TODO: too many arguments, refactor
+	authHandler := auth.NewAuthHandler(
+		env.JWTSecret,
+		address,
+		env.AzureTenantID,
+		env.AzureClientID,
+		env.AzureClientSecret,
+		userHandler,
+	)
+
 	commentHandler := comment.NewCommentHandler(db)
 	commentHandler.CreateDBTable()
+
 	postHandler := post.NewPostHandler(db, commentHandler)
 	postHandler.CreateDBTable()
 
@@ -82,27 +81,26 @@ func (s *Server) Start() Stopper {
 		var router = mux.NewRouter()
 		fs := http.FileServer(http.FS(staticFiles))
 
+		s.server = &http.Server{Addr: address, Handler: router}
+
 		//
 		// ROUTES
 		//
 		router.StrictSlash(true)
 		// router.Use(loggingMiddleware)
-		router.Use(authMiddleware)
+		router.Use(authHandler.Middleware)
 		router.PathPrefix("/static/").Handler(fs)
 
-		router.HandleFunc("/", makeHandleCallback(postHandler.PostListHandler, userHandler)).Methods("GET")
+		router.HandleFunc("/", authHandler.MakeHandleCallback(postHandler.PostListHandler)).Methods("GET")
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
 
-		router.HandleFunc("/login", startLogin).Methods("GET")
+		router.HandleFunc("/login", authHandler.HandleLogin).Methods("GET")
 
 		router.HandleFunc("/posts/", postHandler.PostListHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
 		router.HandleFunc("/posts/{id}/comment", postHandler.PostCommentPOSTHandler).Methods("POST")
-
-		var address = fmt.Sprintf("%s:%s", s.host, s.port)
-		s.server = &http.Server{Addr: address, Handler: router}
 
 		log.Info.Printf("state=http_listening address=%s", s.Address())
 		go func() {
@@ -115,24 +113,6 @@ func (s *Server) Start() Stopper {
 	}()
 
 	return s.Stop
-}
-
-func generateOAuth2Config() *oauth2.Config {
-	config, err := LoadAzureConfig()
-	if err != nil {
-		log.Error.Fatalf("msg='could not load azure config' err='%s'\n", err.Error())
-	}
-
-	return &oauth2.Config{
-		ClientID:     config.ClientID,
-		ClientSecret: config.ClientSecret,
-		RedirectURL:  "http://localhost:54324/", //  in my case RedirectURL:  "http://localhost:8080/callback"
-		Scopes:       []string{"User.Read"},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/authorize",
-			TokenURL: "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/token",
-		},
-	}
 }
 
 // Stops the server
@@ -184,6 +164,29 @@ type AzureConfig struct {
 	TenantID     string
 	ClientID     string
 	ClientSecret string
+}
+
+type Env struct {
+	AzureTenantID     string
+	AzureClientID     string
+	AzureClientSecret string
+	JWTSecret         string
+}
+
+func LoadEnv() Env {
+	err := godotenv.Load()
+	if err != nil {
+		log.Error.Fatalf("msg='could not load .env file' err='%s'\n", err.Error())
+	}
+
+	env := Env{
+		AzureTenantID:     os.Getenv("AZURE_TENANT_ID"),
+		AzureClientID:     os.Getenv("AZURE_CLIENT_ID"),
+		AzureClientSecret: os.Getenv("AZURE_CLIENT_SECRET"),
+		JWTSecret:         os.Getenv("JWT_SECRET"),
+	}
+
+	return env
 }
 
 func LoadAzureConfig() (AzureConfig, error) {

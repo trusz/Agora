@@ -20,8 +20,8 @@
 
 				<small><a href="/posts/{{ .ID }}">{{ .Description }}</a></small>
 				<small>
-					<a href="/posts/{{ .ID }}">43 Comments</a>
-					Created at: {{ .CreatedAt }}
+					Posted by {{ .UserName }} on {{ .CreatedAt }}
+					<a href="/posts/{{ .ID }}">{{ .NumberOFComments }} Comments</a>
 				</small>
 			</content>
 		</li>

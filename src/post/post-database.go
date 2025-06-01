@@ -12,7 +12,9 @@ const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		url TEXT UNIQUE,
 		description TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		user_id TEXT NOT NULL
+		fk_user_id TEXT NOT NULL,
+
+		CONSTRAINT "fk_user_id" FOREIGN KEY("fk_user_id") REFERENCES users(id)
 	);
 	`
 
@@ -35,7 +37,7 @@ func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 		url = p.URL
 	}
 
-	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, owner_id) VALUES (?, ?, ?, ?)", p.Title, url, p.Description, p.OwnerID)
+	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, fk_user_id) VALUES (?, ?, ?, ?)", p.Title, url, p.Description, p.UserID)
 	if err != nil {
 		log.Error.Printf("Error inserting new post: %v", err)
 		return 0, err
@@ -44,7 +46,17 @@ func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 }
 
 func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
-	rows, err := ph.db.Query("SELECT id, title, url, description, created_at FROM posts WHERE id = ?", id)
+	rows, err := ph.db.Query(
+		`
+		SELECT 
+			p.id, p.title, p.url, p.description, p.created_at, 
+			u.name,
+			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
+		FROM posts p
+		LEFT JOIN users u ON u.id = p.fk_user_id
+		WHERE p.id = ?`,
+		id,
+	)
 	if err != nil {
 		log.Error.Println("Could not query post with id=", id)
 		return Post{}, err
@@ -58,8 +70,10 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 		var description string
 		var createdAt string
 		var url sql.NullString
+		var userName string
+		var nrComments int
 
-		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
+		if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
 			log.Error.Println("Could not scan post with id=", id)
 			return PostNull, err
 		}
@@ -69,11 +83,13 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 		}
 
 		wantedPost = Post{
-			ID:          int(id),
-			Title:       sanitize.Sanitize(title),
-			URL:         sanitize.Sanitize(urlStr),
-			Description: sanitize.Sanitize(description),
-			CreatedAt:   createdAt,
+			ID:               int(id),
+			Title:            sanitize.Sanitize(title),
+			URL:              sanitize.Sanitize(urlStr),
+			Description:      sanitize.Sanitize(description),
+			CreatedAt:        createdAt,
+			UserName:         userName,
+			NumberOFComments: nrComments,
 		}
 		return wantedPost, nil
 	}
@@ -85,7 +101,14 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 
 func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 	// Query all posts from the database
-	rows, err := ph.db.Query("SELECT id, title, url, description, created_at FROM posts")
+	rows, err := ph.db.Query(`
+		SELECT 
+			p.id, p.title, p.url, p.description, p.created_at, 
+			u.name,
+			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
+		FROM posts p
+		LEFT JOIN users u ON u.id = p.fk_user_id
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +121,10 @@ func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 		var description string
 		var createdAt string
 		var url sql.NullString
+		var userName string
+		var nrComments int
 
-		if err := rows.Scan(&id, &title, &url, &description, &createdAt); err != nil {
+		if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
 			return nil, err
 		}
 
@@ -108,14 +133,14 @@ func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 			urlStr = url.String
 		}
 
-		log.Debug.Printf("msg='post found' id=%d title='%s' url='%s' description='%s' created_at='%s'\n", id, title, urlStr, description, createdAt)
-
 		post := Post{
-			ID:          int(id),
-			Title:       sanitize.Sanitize(title),
-			URL:         sanitize.Sanitize(urlStr),
-			Description: sanitize.Sanitize(description),
-			CreatedAt:   createdAt,
+			ID:               int(id),
+			Title:            sanitize.Sanitize(title),
+			URL:              sanitize.Sanitize(urlStr),
+			Description:      sanitize.Sanitize(description),
+			CreatedAt:        createdAt,
+			UserName:         userName,
+			NumberOFComments: nrComments,
 		}
 		posts = append(posts, post)
 	}

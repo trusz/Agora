@@ -9,7 +9,7 @@
 	{{ if .Data.Post.URL }}
 	<a href="{{ .Data.Post.URL }}">{{ .Data.Post.URL }}</a> ·.
 	{{ end }}
-	Posted by {{ .Data.Post.OwnerID }} on {{ .Data.Post.CreatedAt }}
+	Posted by {{ .Data.Post.UserName }} on {{ .Data.Post.CreatedAt }}
 </small>
 <p>
 	{{ .Data.Post.Description }}

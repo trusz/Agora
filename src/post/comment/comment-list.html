@@ -1,9 +1,9 @@
 {{ define "comment-list.html" }}
-13 Comments
+{{ .Data.Post.NumberOFComments }} Comments
 <ul id="comment-list">
 	{{ range .Data.Comments }}
 	<li id="comment-{{ .ID }}">
-		<p><small>{{ .UserID }} · {{ .CreatedAt }}</small> </p>
+		<p><small>{{ .UserName }} · {{ .CreatedAt }}</small> </p>
 		<text>{{ .Text }}</text>
 	</li>
 
