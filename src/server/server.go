@@ -1,12 +1,9 @@
 package server
 
 import (
-	"context"
 	"embed"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -89,7 +86,8 @@ func (s *Server) Start() Stopper {
 		// ROUTES
 		//
 		router.StrictSlash(true)
-		router.Use(loggingMiddleware)
+		// router.Use(loggingMiddleware)
+		router.Use(authMiddleware)
 		router.PathPrefix("/static/").Handler(fs)
 
 		router.HandleFunc("/", makeHandleCallback(postHandler.PostListHandler, userHandler)).Methods("GET")
@@ -119,7 +117,7 @@ func (s *Server) Start() Stopper {
 	return s.Stop
 }
 
-func makeOuath2Config() *oauth2.Config {
+func generateOAuth2Config() *oauth2.Config {
 	config, err := LoadAzureConfig()
 	if err != nil {
 		log.Error.Fatalf("msg='could not load azure config' err='%s'\n", err.Error())
@@ -134,59 +132,6 @@ func makeOuath2Config() *oauth2.Config {
 			AuthURL:  "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/authorize",
 			TokenURL: "https://login.microsoftonline.com/" + config.TenantID + "/oauth2/v2.0/token",
 		},
-	}
-}
-
-func startLogin(w http.ResponseWriter, r *http.Request) {
-	oauth2Config := makeOuath2Config()
-	url := oauth2Config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	http.Redirect(w, r, url, http.StatusFound)
-}
-
-func makeHandleCallback(fallbackCallback http.HandlerFunc, userHandler *user.UserHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		oauth2Config := makeOuath2Config()
-		code := r.URL.Query().Get("code")
-		log.Debug.Printf("msg='received callback' code='%s'\n", code)
-		if code == "" {
-			fallbackCallback(w, r)
-			return
-		}
-
-		token, err := oauth2Config.Exchange(context.Background(), code)
-		if err != nil {
-			http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		log.Debug.Printf("msg='token received' token='%s'\n", token.AccessToken)
-
-		client := oauth2Config.Client(context.Background(), token)
-		resp, err := client.Get("https://graph.microsoft.com/v1.0/me")
-		if err != nil {
-			http.Error(w, "Failed to get user info: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			http.Error(w, "Failed to read user info: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Unmarshal the JSON data into the MSGraphUser struct
-		var user MSGraphUser
-		if err := json.Unmarshal(data, &user); err != nil {
-			http.Error(w, "Failed to parse user info: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		log.Pretty(user)
-		if !userHandler.UserExists(user.ID) {
-			userHandler.AddUser(user.ID, user.DisplayName, user.Mail)
-		}
-		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
-
 	}
 }
 

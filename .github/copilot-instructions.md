@@ -9,3 +9,4 @@
 - Put everything in the `src` directory.
 - Don't use .ejs files.
 - Use Go's `html/template` package and HTML files for rendering HTML.
+- The structure of the file should follow the reverse order of the functions, meaning the main functions should be on the top of the file and subfunctions should be at the bottom.
