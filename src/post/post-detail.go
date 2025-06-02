@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TODO: try this out: https://go.dev/blog/slog
+
 func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)

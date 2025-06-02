@@ -126,3 +126,39 @@ textarea {
 	padding:0.5rem;
 	max-width: unset;
 }
+
+:root {
+	--gray-1: #E5E5E5;
+	--gray-2: #DBDDE1;
+	--gray-3: #B3B3B8;
+}
+
+a{
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+a:hover{
+	color: var(--accent-foreground);
+	background-color: var(--accent);
+	text-decoration: underline;
+}
+
+a[href^="http"]::after {
+  content: " ↗";
+  color: var(--accent-foreground);
+}
+
+a[href^="/"] {
+	color: var(--accent-foreground);
+	text-decoration: none;
+}
+
+a[href^="/"]:hover{
+	background-color: var(--accent);
+}
+
+h4{
+	margin:0;
+	padding:0;
+}
