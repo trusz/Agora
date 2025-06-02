@@ -2,9 +2,21 @@ package post
 
 import (
 	"agora/src/log"
-	"agora/src/x/sanitize"
 	"database/sql"
+	"log/slog"
 )
+
+type PostRecord struct {
+	ID          int64
+	Title       string
+	URL         sql.NullString
+	Description string
+	CreatedAt   string
+
+	FUserID       string
+	FUserName     string
+	FNrOfComments int
+}
 
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,11 +57,11 @@ func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
+func (ph *PostHandler) QueryOnePost(id int) (PostRecord, error) {
 	rows, err := ph.db.Query(
 		`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at, 
+			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id,
 			u.name,
 			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
 		FROM posts p
@@ -59,51 +71,57 @@ func (ph *PostHandler) QueryOnePost(id string) (Post, error) {
 	)
 	if err != nil {
 		log.Error.Println("Could not query post with id=", id)
-		return Post{}, err
+		return PostRecord{}, err
 	}
 	defer rows.Close()
 
-	var wantedPost Post
+	// var wantedPost Post
 	for rows.Next() {
-		var id int64
-		var title string
-		var description string
-		var createdAt string
-		var url sql.NullString
-		var userName string
-		var nrComments int
+		// var id int64
+		// var title string
+		// var description string
+		// var createdAt string
+		// var url sql.NullString
+		// var userName string
+		// var nrComments int
+		// Scan the row into variables
 
-		if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
-			log.Error.Println("Could not scan post with id=", id)
-			return PostNull, err
-		}
-		var urlStr string
-		if url.Valid {
-			urlStr = url.String
+		wantedPostRecord, err := scanPostRecord(rows)
+		if err != nil {
+			slog.Error("Could not scan post", "id", id, "error", err)
+			return PostRecord{}, err
 		}
 
-		wantedPost = Post{
-			ID:               int(id),
-			Title:            sanitize.Sanitize(title),
-			URL:              sanitize.Sanitize(urlStr),
-			Description:      sanitize.Sanitize(description),
-			CreatedAt:        createdAt,
-			UserName:         userName,
-			NumberOFComments: nrComments,
-		}
-		return wantedPost, nil
+		// if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
+		// 	log.Error.Println("Could not scan post with id=", id)
+		// 	return PostRecord{}, err
+		// }
+		// var urlStr string
+		// if url.Valid {
+		// 	urlStr = url.String
+		// }
+
+		// wantedPost = Post{
+		// 	ID:               int(id),
+		// 	Title:            sanitize.Sanitize(title),
+		// 	URL:              sanitize.Sanitize(urlStr),
+		// 	Description:      sanitize.Sanitize(description),
+		// 	CreatedAt:        createdAt,
+		// 	UserName:         userName,
+		// 	NumberOFComments: nrComments,
+		// }
+		return wantedPostRecord, nil
 	}
 
-	log.Debug.Println("no post found")
-	return PostNull, nil
+	return PostRecord{}, nil
 
 }
 
-func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
+func (ph *PostHandler) QueryAllPosts() ([]PostRecord, error) {
 	// Query all posts from the database
 	rows, err := ph.db.Query(`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at, 
+			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id,
 			u.name,
 			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
 		FROM posts p
@@ -114,36 +132,37 @@ func (ph *PostHandler) QueryAllPosts() ([]Post, error) {
 	}
 	defer rows.Close()
 
-	var posts []Post
+	var postRecords []PostRecord
 	for rows.Next() {
-		var id int64
-		var title string
-		var description string
-		var createdAt string
-		var url sql.NullString
-		var userName string
-		var nrComments int
 
-		if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
-			return nil, err
+		wantedPostRecord, err := scanPostRecord(rows)
+		if err != nil {
+			slog.Error("Could not scan post", "error", err, "rows", rows)
+			continue
 		}
 
-		var urlStr string
-		if url.Valid {
-			urlStr = url.String
-		}
-
-		post := Post{
-			ID:               int(id),
-			Title:            sanitize.Sanitize(title),
-			URL:              sanitize.Sanitize(urlStr),
-			Description:      sanitize.Sanitize(description),
-			CreatedAt:        createdAt,
-			UserName:         userName,
-			NumberOFComments: nrComments,
-		}
-		posts = append(posts, post)
+		postRecords = append(postRecords, wantedPostRecord)
 	}
 
-	return posts, nil
+	return postRecords, nil
+}
+
+func scanPostRecord(rows *sql.Rows) (PostRecord, error) {
+
+	var p PostRecord
+	err := rows.Scan(
+		&p.ID,
+		&p.Title,
+		&p.URL,
+		&p.Description,
+		&p.CreatedAt,
+		&p.FUserID,
+		&p.FUserName,
+		&p.FNrOfComments,
+	)
+	if err != nil {
+		return PostRecord{}, err
+	}
+
+	return p, nil
 }

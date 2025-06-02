@@ -1,28 +1,46 @@
 package post
 
 import (
-	"agora/src/log"
 	"agora/src/render"
+	"agora/src/x/date"
 	"net/http"
 )
 
 func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 
-	posts, err := ph.QueryAllPosts()
-	if err != nil {
-		log.Error.Printf("msg='could not query all posts' err='%s'\n", err.Error())
-		http.Error(w, "Could not query posts: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	posts := ph.FindAllPosts()
+	var postListItesms []PostListItem
+	for _, post := range posts {
 
-	for i := range posts {
-		if len(posts[i].Description) > 100 {
-			posts[i].Description = posts[i].Description[:100] + " …"
+		CutOfDescription := post.Description
+		if len(CutOfDescription) > 100 {
+			CutOfDescription = CutOfDescription[:100] + " …"
 		}
+
+		postListItesms = append(postListItesms, PostListItem{
+			ID:               post.ID,
+			Title:            post.Title,
+			URL:              post.URL,
+			Description:      CutOfDescription,
+			CreatedAt:        date.FormatDate(post.CreatedAt),
+			UserName:         post.UserName,
+			NumberOfComments: post.NumberOFComments,
+		})
+
 	}
 
 	render.RenderTemplate(w, "src/post/post-list.html", &render.Page{
 		Title: "Posts",
-		Data:  posts,
+		Data:  postListItesms,
 	})
+}
+
+type PostListItem struct {
+	ID               int
+	Title            string
+	URL              string
+	Description      string
+	CreatedAt        string
+	UserName         string
+	NumberOfComments int
 }

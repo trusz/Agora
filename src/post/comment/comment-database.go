@@ -2,6 +2,7 @@ package comment
 
 import (
 	"agora/src/log"
+	"agora/src/x/date"
 	"agora/src/x/sanitize"
 )
 
@@ -69,7 +70,7 @@ func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]Comment, error
 			Text:      sanitize.Sanitize(text),
 			PostID:    postID,
 			UserID:    userID,
-			CreatedAt: createdAt,
+			CreatedAt: date.FormatDate(createdAt),
 			UserName:  userName,
 		}
 		comments = append(comments, comment)

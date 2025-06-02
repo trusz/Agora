@@ -13,15 +13,15 @@
 			</votes>
 			<content>
 				{{ if .URL }}
-				<small><a href="{{ .URL }}">{{ .Title }}</a></small>
+				<a href="{{ .URL }}">{{ .Title }}</a>
 				{{ else }}
-				<small><a href="/posts/{{ .ID }}">{{ .Title }}</a></small>
+				<a href="/posts/{{ .ID }}">{{ .Title }}</a>
 				{{ end }}
 
 				<small><a href="/posts/{{ .ID }}">{{ .Description }}</a></small>
 				<small>
-					Posted by {{ .UserName }} on {{ .CreatedAt }}
-					<a href="/posts/{{ .ID }}">{{ .NumberOFComments }} Comments</a>
+					Posted by {{ .UserName }} · {{ .CreatedAt }} ·
+					<a href="/posts/{{ .ID }}">{{ .NumberOfComments }} Comments</a>
 				</small>
 			</content>
 		</li>

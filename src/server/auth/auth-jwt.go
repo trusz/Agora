@@ -20,7 +20,7 @@ func (ah *AuthHandler) createJWT(userID string, name string, email string, issue
 	// Create claims with RegisteredClaims for proper expiration handling
 	now := time.Now()
 	expirationTime := now.Add(time.Hour * 1)
-	
+
 	claims := CustomClaims{
 		UserID: userID,
 		Name:   name,
@@ -59,19 +59,10 @@ func (ah *AuthHandler) VerifyToken(tokenString string) (jwt.Token, error) {
 		return jwt.Token{}, err
 	}
 
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		log.Debug.Println("Token valid!")
-		log.Debug.Printf("User ID: %v\n", claims.UserID)
-		log.Debug.Printf("Name: %v\n", claims.Name)
-		log.Debug.Printf("Email: %v\n", claims.Email)
+	if _, ok := token.Claims.(*CustomClaims); ok && token.Valid {
 
-		// We can safely access expiration time using RegisteredClaims methods
-		expiry, err := claims.GetExpirationTime()
-		if err == nil {
-			log.Debug.Printf("Expires at: %v\n", expiry.Time)
-		}
 	} else {
-		log.Debug.Println("Invalid token claims")
+		log.Error.Println("Invalid token claims")
 	}
 
 	return *token, nil
