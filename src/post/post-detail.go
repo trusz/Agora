@@ -41,11 +41,22 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	comments, err := ph.ch.QueryAllCommentyByPostID(int(record.ID))
+	records, err := ph.ch.QueryAllCommentyByPostID(int(record.ID))
 	if err != nil {
 		log.Error.Printf("msg='could not query comments for post' postID='%d' err='%s'\n", record.ID, err.Error())
 		http.Error(w, "Could not retrieve comments", http.StatusInternalServerError)
 		return
+	}
+
+	var commentListItems []CommentListItem
+	for _, commentRecord := range records {
+		commentListItems = append(commentListItems, CommentListItem{
+			ID:        int(commentRecord.ID),
+			Text:      commentRecord.Text,
+			UserID:    commentRecord.UserID,
+			CreatedAt: date.FormatDate(commentRecord.CreatedAt),
+			UserName:  commentRecord.UserName,
+		})
 	}
 
 	postView := PostDetailItem{
@@ -62,10 +73,10 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		Title: "Post: " + record.Title,
 		Data: struct {
 			Post     PostDetailItem
-			Comments []comment.Comment
+			Comments []CommentListItem
 		}{
 			Post:     postView,
-			Comments: comments,
+			Comments: commentListItems,
 		},
 	}
 
@@ -90,8 +101,16 @@ type PostDetailItem struct {
 	NumberOFComments int
 }
 
+type CommentListItem struct {
+	ID        int
+	Text      string
+	UserID    string
+	CreatedAt string
+	UserName  string
+}
+
 func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Request) {
-	loggedInUser, ok := auth.ExtractUserFromContext(r.Context())
+	user, ok := auth.ExtractUserFromContext(r.Context())
 	if !ok {
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
 		return
@@ -114,14 +133,19 @@ func (ph *PostHandler) PostCommentPOSTHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	newCommentText := sanitize.Sanitize(r.FormValue("comment"))
+	newComment := comment.CommentInsertRecord{
+		Text:   sanitize.Sanitize(r.FormValue("comment")),
+		PostID: postID,
+		UserID: user.ID,
+	}
 
-	newCommentID, err := ph.ch.AddNewComment(postID, newCommentText, loggedInUser.ID)
+	newCommentID, err := ph.ch.InsertNewComment(newComment)
 	if err != nil {
 		log.Error.Printf("msg='could not add new comment' postID='%d' err='%s'\n", postID, err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/posts/"+varPostID+"/#comment-"+strconv.Itoa(newCommentID), http.StatusSeeOther)
+	url := "/posts/" + varPostID + "/#comment-" + strconv.Itoa(int(newCommentID))
+	http.Redirect(w, r, url, http.StatusSeeOther)
 }

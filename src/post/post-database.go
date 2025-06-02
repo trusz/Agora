@@ -130,7 +130,7 @@ type PostDetailRecord struct {
 	FNrOfComments int
 }
 
-func (ph *PostHandler) QueryAllPosts() ([]PostRecord, error) {
+func (ph *PostHandler) QueryAllPosts() ([]PostListeRecord, error) {
 	// Query all posts from the database
 	rows, err := ph.db.Query(`
 		SELECT 
@@ -145,37 +145,38 @@ func (ph *PostHandler) QueryAllPosts() ([]PostRecord, error) {
 	}
 	defer rows.Close()
 
-	var postRecords []PostRecord
+	var records []PostListeRecord
 	for rows.Next() {
 
-		wantedPostRecord, err := scanPostRecord(rows)
+		var record PostListeRecord
+		err := rows.Scan(
+			&record.ID,
+			&record.Title,
+			&record.URL,
+			&record.Description,
+			&record.CreatedAt,
+			&record.FUserID,
+			&record.FUserName,
+			&record.FNrOfComments,
+		)
 		if err != nil {
 			slog.Error("Could not scan post", "error", err, "rows", rows)
 			continue
 		}
 
-		postRecords = append(postRecords, wantedPostRecord)
+		records = append(records, record)
 	}
 
-	return postRecords, nil
+	return records, nil
 }
 
-func scanPostRecord(rows *sql.Rows) (PostRecord, error) {
-
-	var p PostRecord
-	err := rows.Scan(
-		&p.ID,
-		&p.Title,
-		&p.URL,
-		&p.Description,
-		&p.CreatedAt,
-		&p.FUserID,
-		&p.FUserName,
-		&p.FNrOfComments,
-	)
-	if err != nil {
-		return PostRecord{}, err
-	}
-
-	return p, nil
+type PostListeRecord struct {
+	ID            int64
+	Title         string
+	URL           sql.NullString
+	Description   string
+	CreatedAt     string
+	FUserID       string
+	FUserName     string
+	FNrOfComments int
 }

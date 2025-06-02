@@ -2,8 +2,6 @@ package comment
 
 import (
 	"agora/src/log"
-	"agora/src/x/date"
-	"agora/src/x/sanitize"
 )
 
 const TABLE_QUERY = `
@@ -29,9 +27,14 @@ func (ch *CommentHandler) CreateDBTable() error {
 	return nil
 }
 
-func (ch *CommentHandler) InsertNewComment(c Comment) (int64, error) {
+func (ch *CommentHandler) InsertNewComment(c CommentInsertRecord) (int64, error) {
 	// Insert a new post into the database
-	result, err := ch.db.Exec("INSERT INTO comments (text, fk_post_id, fk_user_id) VALUES (?, ?, ?)", c.Text, c.PostID, c.UserID)
+	result, err := ch.db.Exec(
+		`INSERT INTO comments (text, fk_post_id, fk_user_id) VALUES (?, ?, ?)`,
+		c.Text,
+		c.PostID,
+		c.UserID,
+	)
 	if err != nil {
 		log.Error.Printf("Error inserting new comment: %v", err)
 		return 0, err
@@ -39,9 +42,15 @@ func (ch *CommentHandler) InsertNewComment(c Comment) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]Comment, error) {
+type CommentInsertRecord struct {
+	Text   string
+	PostID int
+	UserID string
+}
+
+func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]CommentListRecord, error) {
 	rows, err := ch.db.Query(
-		`SELECT c.id, c.text, c.fk_user_id, c.created_at, u.name
+		`SELECT c.id, c.text, c.created_at, u.name
 		 FROM comments c
 		 LEFT JOIN users u ON u.id = c.fk_user_id
 		 WHERE c.fk_post_id = ?`,
@@ -52,30 +61,32 @@ func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]Comment, error
 	}
 	defer rows.Close()
 
-	var comments []Comment
+	var records []CommentListRecord
 	for rows.Next() {
-		var id int64
-		var text string
-		var userID string
-		var createdAt string
-		var userName string
+		var record CommentListRecord
 
-		if err := rows.Scan(&id, &text, &userID, &createdAt, &userName); err != nil {
+		err := rows.Scan(
+			&record.ID,
+			&record.Text,
+			&record.CreatedAt,
+			&record.UserName,
+		)
+		if err != nil {
 			log.Error.Printf("msg='could not scan row' err='%s'\n", err)
 			return nil, err
 		}
 
-		comment := Comment{
-			ID:        int(id),
-			Text:      sanitize.Sanitize(text),
-			PostID:    postID,
-			UserID:    userID,
-			CreatedAt: date.FormatDate(createdAt),
-			UserName:  userName,
-		}
-		comments = append(comments, comment)
+		records = append(records, record)
 	}
 
-	return comments, nil
+	return records, nil
+}
 
+type CommentListRecord struct {
+	ID        int
+	Text      string
+	PostID    int
+	UserID    string
+	CreatedAt string
+	UserName  string
 }

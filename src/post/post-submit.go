@@ -3,7 +3,7 @@ package post
 import (
 	"agora/src/log"
 	"agora/src/render"
-	"agora/src/user"
+	"agora/src/server/auth"
 	"agora/src/x/sanitize"
 	"net/http"
 	"strconv"
@@ -19,8 +19,7 @@ func (ph *PostHandler) PostSubmitGETHandler(w http.ResponseWriter, r *http.Reque
 
 func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Request) {
 	context := r.Context()
-	log.Debug.Printf("msg='PostSubmitPOSTHandler' context='%#v'\n", context)
-	loggedInUser, ok := context.Value("user").(user.User)
+	user, ok := auth.ExtractUserFromContext(context)
 	if !ok {
 		log.Error.Printf("msg='could not get user from context' context='%#v'\n", context)
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
@@ -40,7 +39,7 @@ func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Requ
 		Title:       title,
 		URL:         url,
 		Description: desc,
-		UserID:      loggedInUser.ID,
+		UserID:      user.ID,
 	}
 
 	newPostID, err := ph.InsertNewPost(newPost)

@@ -1,6 +1,7 @@
 package post
 
 import (
+	"agora/src/log"
 	"agora/src/render"
 	"agora/src/x/date"
 	"net/http"
@@ -8,23 +9,27 @@ import (
 
 func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 
-	posts := ph.FindAllPosts()
+	records, err := ph.QueryAllPosts()
+	if err != nil {
+		log.Error.Printf("msg='could not query all posts' err='%s'\n", err.Error())
+		http.Error(w, "Could not retrieve posts", http.StatusInternalServerError)
+	}
 	var postListItesms []PostListItem
-	for _, post := range posts {
+	for _, record := range records {
 
-		CutOfDescription := post.Description
+		CutOfDescription := record.Description
 		if len(CutOfDescription) > 100 {
 			CutOfDescription = CutOfDescription[:100] + " …"
 		}
 
 		postListItesms = append(postListItesms, PostListItem{
-			ID:               post.ID,
-			Title:            post.Title,
-			URL:              post.URL,
+			ID:               int(record.ID),
+			Title:            record.Title,
+			URL:              record.URL.String,
 			Description:      CutOfDescription,
-			CreatedAt:        date.FormatDate(post.CreatedAt),
-			UserName:         post.UserName,
-			NumberOfComments: post.NumberOFComments,
+			CreatedAt:        date.FormatDate(record.CreatedAt),
+			UserName:         record.FUserName,
+			NumberOfComments: record.FNrOfComments,
 		})
 
 	}

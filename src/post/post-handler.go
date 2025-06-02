@@ -2,7 +2,6 @@ package post
 
 import (
 	"agora/src/db"
-	"agora/src/log"
 	"agora/src/post/comment"
 )
 
@@ -15,31 +14,5 @@ func NewPostHandler(db *db.DB, ch *comment.CommentHandler) *PostHandler {
 	return &PostHandler{
 		db: db,
 		ch: ch,
-	}
-}
-
-func (ph *PostHandler) FindAllPosts() []Post {
-	postRecords, err := ph.QueryAllPosts()
-	if err != nil {
-		log.Error.Printf("msg='could not query all posts' err='%s'\n", err.Error())
-		return nil
-	}
-	posts := make([]Post, 0, len(postRecords))
-	for _, postRecord := range postRecords {
-		posts = append(posts, postRecordToPost(postRecord))
-	}
-	return posts
-}
-
-func postRecordToPost(pr PostRecord) Post {
-	return Post{
-		ID:               int(pr.ID),
-		Title:            pr.Title,
-		URL:              pr.URL.String,
-		Description:      pr.Description,
-		CreatedAt:        pr.CreatedAt,
-		UserID:           pr.FUserID,
-		UserName:         pr.FUserName,
-		NumberOFComments: pr.FNrOfComments,
 	}
 }
