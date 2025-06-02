@@ -26,34 +26,42 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	post := ph.FindPostByID(postID)
-	if post == PostNull {
-		log.Error.Printf("msg='post not found' postID='%d'\n", postID)
-		http.Redirect(w, r, "/posts", http.StatusSeeOther)
+	// TODO: probably should differentiate between problems
+	// so we can send 404 if post not found
+	record, err := ph.QueryOnePost(postID)
+	if err != nil {
+		log.Error.Printf("msg='could not query post by ID' postID='%d' err='%s'\n", postID, err.Error())
+		http.Error(w, "Could not retrieve post", http.StatusInternalServerError)
 		return
 	}
 
-	comments, err := ph.ch.QueryAllCommentyByPostID(post.ID)
+	if record == (PostDetailRecord{}) {
+		log.Error.Printf("msg='post not found' postID='%d'\n", postID)
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+
+	comments, err := ph.ch.QueryAllCommentyByPostID(int(record.ID))
 	if err != nil {
-		log.Error.Printf("msg='could not query comments for post' postID='%d' err='%s'\n", post.ID, err.Error())
+		log.Error.Printf("msg='could not query comments for post' postID='%d' err='%s'\n", record.ID, err.Error())
 		http.Error(w, "Could not retrieve comments", http.StatusInternalServerError)
 		return
 	}
 
-	postView := PostView{
-		ID:               post.ID,
-		Title:            post.Title,
-		URL:              post.URL,
-		Description:      post.Description,
-		CreatedAt:        date.FormatDate(post.CreatedAt),
-		UserName:         post.UserName,
-		NumberOFComments: post.NumberOFComments,
+	postView := PostDetailItem{
+		ID:               int(record.ID),
+		Title:            record.Title,
+		URL:              record.URL.String,
+		Description:      record.Description,
+		CreatedAt:        date.FormatDate(record.CreatedAt),
+		UserName:         record.FUserName,
+		NumberOFComments: record.FNrOfComments,
 	}
 
 	pageData := &render.Page{
-		Title: "Post: " + post.Title,
+		Title: "Post: " + record.Title,
 		Data: struct {
-			Post     PostView
+			Post     PostDetailItem
 			Comments []comment.Comment
 		}{
 			Post:     postView,
@@ -72,7 +80,7 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 	)
 }
 
-type PostView struct {
+type PostDetailItem struct {
 	ID               int
 	Title            string
 	URL              string

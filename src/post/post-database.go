@@ -40,24 +40,42 @@ func (ph *PostHandler) CreateDBTable() error {
 	return nil
 }
 
-func (ph *PostHandler) InsertNewPost(p Post) (int64, error) {
+func (ph *PostHandler) InsertNewPost(record PostNewRecord) (int64, error) {
 	// Insert a new post into the database
 	var url interface{}
-	if p.URL == "" {
+	if record.URL == "" {
 		url = nil
 	} else {
-		url = p.URL
+		url = record.URL
 	}
 
-	result, err := ph.db.Exec("INSERT INTO posts (title, url, description, fk_user_id) VALUES (?, ?, ?, ?)", p.Title, url, p.Description, p.UserID)
+	result, err := ph.db.Exec(
+		`INSERT 
+			INTO posts (title, url, description, fk_user_id) 
+			VALUES (?, ?, ?, ?)
+		`,
+		record.Title,
+		url,
+		record.Description,
+		record.UserID,
+	)
+
 	if err != nil {
 		log.Error.Printf("Error inserting new post: %v", err)
 		return 0, err
 	}
+
 	return result.LastInsertId()
 }
 
-func (ph *PostHandler) QueryOnePost(id int) (PostRecord, error) {
+type PostNewRecord struct {
+	Title       string
+	URL         string
+	Description string
+	UserID      string
+}
+
+func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 	rows, err := ph.db.Query(
 		`
 		SELECT 
@@ -71,50 +89,45 @@ func (ph *PostHandler) QueryOnePost(id int) (PostRecord, error) {
 	)
 	if err != nil {
 		log.Error.Println("Could not query post with id=", id)
-		return PostRecord{}, err
+		return PostDetailRecord{}, err
 	}
 	defer rows.Close()
 
-	// var wantedPost Post
 	for rows.Next() {
-		// var id int64
-		// var title string
-		// var description string
-		// var createdAt string
-		// var url sql.NullString
-		// var userName string
-		// var nrComments int
-		// Scan the row into variables
 
-		wantedPostRecord, err := scanPostRecord(rows)
+		var record PostDetailRecord
+		err := rows.Scan(
+			&record.ID,
+			&record.Title,
+			&record.URL,
+			&record.Description,
+			&record.CreatedAt,
+			&record.FUserID,
+			&record.FUserName,
+			&record.FNrOfComments,
+		)
+
 		if err != nil {
 			slog.Error("Could not scan post", "id", id, "error", err)
-			return PostRecord{}, err
+			return PostDetailRecord{}, err
 		}
 
-		// if err := rows.Scan(&id, &title, &url, &description, &createdAt, &userName, &nrComments); err != nil {
-		// 	log.Error.Println("Could not scan post with id=", id)
-		// 	return PostRecord{}, err
-		// }
-		// var urlStr string
-		// if url.Valid {
-		// 	urlStr = url.String
-		// }
-
-		// wantedPost = Post{
-		// 	ID:               int(id),
-		// 	Title:            sanitize.Sanitize(title),
-		// 	URL:              sanitize.Sanitize(urlStr),
-		// 	Description:      sanitize.Sanitize(description),
-		// 	CreatedAt:        createdAt,
-		// 	UserName:         userName,
-		// 	NumberOFComments: nrComments,
-		// }
-		return wantedPostRecord, nil
+		return record, nil
 	}
 
-	return PostRecord{}, nil
+	return PostDetailRecord{}, nil
 
+}
+
+type PostDetailRecord struct {
+	ID            int64
+	Title         string
+	URL           sql.NullString
+	Description   string
+	CreatedAt     string
+	FUserID       string
+	FUserName     string
+	FNrOfComments int
 }
 
 func (ph *PostHandler) QueryAllPosts() ([]PostRecord, error) {

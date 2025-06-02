@@ -18,16 +18,6 @@ func NewPostHandler(db *db.DB, ch *comment.CommentHandler) *PostHandler {
 	}
 }
 
-func (ph *PostHandler) FindPostByID(postID int) Post {
-	postRecord, err := ph.QueryOnePost(postID)
-	if err != nil {
-		log.Error.Printf("msg='could not query post by ID' postID='%d' err='%s'\n", postID, err.Error())
-		return PostNull
-	}
-
-	return postRecordToPost(postRecord)
-}
-
 func (ph *PostHandler) FindAllPosts() []Post {
 	postRecords, err := ph.QueryAllPosts()
 	if err != nil {

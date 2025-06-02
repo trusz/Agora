@@ -36,7 +36,7 @@ func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Requ
 	url := sanitize.Sanitize(r.FormValue("url"))
 	desc := sanitize.Sanitize(r.FormValue("description"))
 
-	newPost := Post{
+	newPost := PostNewRecord{
 		Title:       title,
 		URL:         url,
 		Description: desc,
