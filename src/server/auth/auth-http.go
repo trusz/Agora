@@ -17,7 +17,6 @@ func (ah *AuthHandler) Middleware(next http.Handler) http.Handler {
 			(r.URL.Path == "/" && r.URL.Query().Get("code") != "")
 
 		if !cookieFound {
-			log.Debug.Println("No valid token found in cookie, redirecting to login")
 			if tryingToLogin {
 				next.ServeHTTP(w, r)
 				return

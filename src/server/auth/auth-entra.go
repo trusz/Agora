@@ -58,7 +58,6 @@ func (ah *AuthHandler) MakeHandleCallback(fallbackHandler http.HandlerFunc) http
 		}
 
 		newToken, jwtString := ah.createJWT(user.ID, user.DisplayName, user.Mail, ah.issuer)
-		log.Debug.Printf("msg='JWT created' jwt='%#v'\n", newToken)
 		expiry, err := newToken.Claims.GetExpirationTime()
 		if err != nil {
 			log.Error.Printf("Failed to get expiration time from JWT claims: %v\n", err)

@@ -15,6 +15,7 @@ import (
 	"agora/src/post/comment"
 	"agora/src/server/auth"
 	"agora/src/user"
+	"agora/src/vote"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -77,6 +78,9 @@ func (s *Server) Start() Stopper {
 	postHandler := post.NewPostHandler(db, commentHandler)
 	postHandler.CreateDBTable()
 
+	voteHandler := vote.NewVoteHandler(db)
+	voteHandler.CreateDBTable()
+
 	go func() {
 		var router = mux.NewRouter()
 		fs := http.FileServer(http.FS(staticFiles))
@@ -101,6 +105,8 @@ func (s *Server) Start() Stopper {
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
 		router.HandleFunc("/posts/{id}/comment", postHandler.PostCommentPOSTHandler).Methods("POST")
+
+		router.HandleFunc("/vote", voteHandler.VotePOSTHandler).Methods("POST")
 
 		log.Info.Printf("state=http_listening address=%s", s.Address())
 		go func() {

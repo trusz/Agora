@@ -3,7 +3,6 @@ package post
 import (
 	"agora/src/log"
 	"database/sql"
-	"log/slog"
 )
 
 type PostRecord struct {
@@ -108,7 +107,7 @@ func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 		)
 
 		if err != nil {
-			slog.Error("Could not scan post", "id", id, "error", err)
+			log.Error.Printf("Could not scan post: id=%d error=%v", id, err)
 			return PostDetailRecord{}, err
 		}
 
@@ -130,37 +129,43 @@ type PostDetailRecord struct {
 	FNrOfComments int
 }
 
-func (ph *PostHandler) QueryAllPosts() ([]PostListeRecord, error) {
+func (ph *PostHandler) QueryAllPosts(userID string) ([]PostListRecord, error) {
+
 	// Query all posts from the database
 	rows, err := ph.db.Query(`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id,
+			p.id, p.title, p.url, p.description, p.created_at,
 			u.name,
-			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
+			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments,
+			(Select count(*) from votes v where fk_post_id=p.id ) nr_votes,
+			(select count(*) > 0 from votes v where v.fk_post_id = p.id and v.fk_user_id = ?) user_voted
 		FROM posts p
 		LEFT JOIN users u ON u.id = p.fk_user_id
-	`)
+	`,
+		userID,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var records []PostListeRecord
+	var records []PostListRecord
 	for rows.Next() {
 
-		var record PostListeRecord
+		var record PostListRecord
 		err := rows.Scan(
 			&record.ID,
 			&record.Title,
 			&record.URL,
 			&record.Description,
 			&record.CreatedAt,
-			&record.FUserID,
 			&record.FUserName,
 			&record.FNrOfComments,
+			&record.FNrOfVotes,
+			&record.UserVoted,
 		)
 		if err != nil {
-			slog.Error("Could not scan post", "error", err, "rows", rows)
+			log.Error.Printf("Could not scan post: error=%v rows=%v", err, rows)
 			continue
 		}
 
@@ -170,13 +175,14 @@ func (ph *PostHandler) QueryAllPosts() ([]PostListeRecord, error) {
 	return records, nil
 }
 
-type PostListeRecord struct {
+type PostListRecord struct {
 	ID            int64
 	Title         string
 	URL           sql.NullString
 	Description   string
 	CreatedAt     string
-	FUserID       string
 	FUserName     string
 	FNrOfComments int
+	FNrOfVotes    int
+	UserVoted     int
 }
