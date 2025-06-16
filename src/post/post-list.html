@@ -6,7 +6,7 @@
 <h1>Posts</h1>
 <div class="post-list">
 	<ul>
-		{{ range .Data }}
+		{{ range .Data.Posts }}
 		<li id="post-{{ .ID }}">
 			<votes>
 				<div>
@@ -47,6 +47,19 @@
 		<li>No posts found.</li>
 		{{ end }}
 	</ul>
+	<nav>
+		<span>
+			{{ if .Data.HasPrevPage }}
+			<a href="/posts?page={{ .Data.PrevPage }}">← Previous</a>
+			{{ end }}
+		</span>
+		<span>
+			{{ if .Data.HasNextPage }}
+			<a href="/posts?page={{ .Data.NextPage }}">Next →</a>
+			{{ end }}
+		</span>
+	</nav>
+
 </div>
 <style>
 	.post-list {
@@ -109,6 +122,13 @@
 		.icon {
 			height: 1rem;
 
+		}
+
+		nav {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 1rem;
+			font-weight: bold;
 		}
 
 	}
