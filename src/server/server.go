@@ -92,7 +92,8 @@ func (s *Server) Start() Stopper {
 		//
 		router.StrictSlash(true)
 		// router.Use(loggingMiddleware)
-		router.Use(authHandler.Middleware)
+		// router.Use(authHandler.Middleware)
+		router.Use(authHandler.MockMiddleware)
 		router.PathPrefix("/static/").Handler(fs)
 
 		router.HandleFunc("/", authHandler.MakeHandleCallback(postHandler.PostListHandler)).Methods("GET")

@@ -44,13 +44,28 @@ func (ah *AuthHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		loggedInUser := user.User{
+		user := user.User{
 			ID:    claims.UserID,
 			Name:  claims.Name,
 			Email: claims.Email,
 		}
 
-		ctx := context.WithValue(r.Context(), "user", loggedInUser)
+		ctx := context.WithValue(r.Context(), "user", user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (ah *AuthHandler) MockMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := user.User{
+			ID:    "999",
+			Name:  "John Local",
+			Email: "john@localhost.com",
+		}
+		if !ah.userHandler.UserExists(user.ID) {
+			ah.userHandler.AddUser(user.ID, "John Local", user.Email)
+		}
+		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
