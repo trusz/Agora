@@ -5,16 +5,25 @@ import (
 	"database/sql"
 )
 
+// type PostRecord struct {
+// 	ID          int64
+// 	Title       string
+// 	URL         sql.NullString
+// 	Description string
+// 	CreatedAt   string
+
+// 	FUserID       string
+// 	FUserName     string
+// 	FNrOfComments int
+// }
+
 type PostRecord struct {
 	ID          int64
 	Title       string
 	URL         sql.NullString
 	Description string
 	CreatedAt   string
-
-	FUserID       string
-	FUserName     string
-	FNrOfComments int
+	Rank        int
 }
 
 const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
@@ -24,6 +33,7 @@ const TABLE_QUERY = `CREATE TABLE IF NOT EXISTS posts (
 		description TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		fk_user_id TEXT NOT NULL,
+		rank INT DEFAULT 0,
 
 		CONSTRAINT "fk_user_id" FOREIGN KEY("fk_user_id") REFERENCES users(id)
 	);
@@ -129,18 +139,19 @@ type PostDetailRecord struct {
 	FNrOfComments int
 }
 
-func (ph *PostHandler) QueryAllPosts(userID string) ([]PostListRecord, error) {
+func (ph *PostHandler) QueryAllPostsForTheList(userID string) ([]PostListRecord, error) {
 
 	// Query all posts from the database
 	rows, err := ph.db.Query(`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at,
+			p.id, p.title, p.url, p.description, p.created_at, p.rank,
 			u.name,
 			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments,
 			(Select count(*) from votes v where fk_post_id=p.id ) nr_votes,
 			(select count(*) > 0 from votes v where v.fk_post_id = p.id and v.fk_user_id = ?) user_voted
 		FROM posts p
 		LEFT JOIN users u ON u.id = p.fk_user_id
+		ORDER BY p.rank DESC, p.created_at DESC
 	`,
 		userID,
 	)
@@ -159,6 +170,7 @@ func (ph *PostHandler) QueryAllPosts(userID string) ([]PostListRecord, error) {
 			&record.URL,
 			&record.Description,
 			&record.CreatedAt,
+			&record.Rank,
 			&record.FUserName,
 			&record.FNrOfComments,
 			&record.FNrOfVotes,
@@ -175,14 +187,70 @@ func (ph *PostHandler) QueryAllPosts(userID string) ([]PostListRecord, error) {
 	return records, nil
 }
 
+func (ph *PostHandler) QueryAllPostsForRanking() ([]PostForRanking, error) {
+
+	// Query all posts from the database
+	rows, err := ph.db.Query(`
+		SELECT 
+			p.id, p.title, p.url, p.description, p.created_at, p.rank,
+			(Select count(*) from votes v where fk_post_id=p.id ) nr_votes
+		FROM posts p
+	`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var records []PostForRanking
+	for rows.Next() {
+
+		var record PostForRanking
+		err := rows.Scan(
+			&record.ID,
+			&record.Title,
+			&record.URL,
+			&record.Description,
+			&record.CreatedAt,
+			&record.Rank,
+			&record.FNrOfVotes,
+		)
+		if err != nil {
+			log.Error.Printf("Could not scan post: error=%v rows=%v", err, rows)
+			continue
+		}
+
+		records = append(records, record)
+	}
+
+	return records, nil
+}
+
 type PostListRecord struct {
-	ID            int64
-	Title         string
-	URL           sql.NullString
-	Description   string
-	CreatedAt     string
+	PostRecord
 	FUserName     string
 	FNrOfComments int
 	FNrOfVotes    int
+	FNUserVoted   int
 	UserVoted     int
+	Rank          int
+}
+
+type PostForRanking struct {
+	PostRecord
+	FNrOfVotes int
+}
+
+func (ph *PostHandler) UpdateRank(postID int64, rank int) error {
+	// Update the rank of a post
+	_, err := ph.db.Exec(
+		`UPDATE posts SET rank = ? WHERE id = ?`,
+		rank,
+		postID,
+	)
+	if err != nil {
+		log.Error.Printf("Error updating post rank: %v", err)
+		return err
+	}
+	return nil
 }

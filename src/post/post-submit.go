@@ -49,5 +49,5 @@ func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	http.Redirect(w, r, "/posts#post-"+strconv.Itoa(int(newPostID)), http.StatusSeeOther)
+	http.Redirect(w, r, "/posts/"+strconv.Itoa(int(newPostID)), http.StatusSeeOther)
 }

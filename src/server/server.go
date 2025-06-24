@@ -13,6 +13,7 @@ import (
 	"agora/src/log"
 	"agora/src/post"
 	"agora/src/post/comment"
+	"agora/src/ranker"
 	"agora/src/server/auth"
 	"agora/src/user"
 	"agora/src/vote"
@@ -80,6 +81,9 @@ func (s *Server) Start() Stopper {
 
 	voteHandler := vote.NewVoteHandler(db)
 	voteHandler.CreateDBTable()
+
+	rnk := ranker.NewRanker(postHandler)
+	rnk.Start()
 
 	go func() {
 		var router = mux.NewRouter()

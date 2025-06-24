@@ -19,10 +19,15 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	records, err := ph.QueryAllPosts(user.ID)
+	records, err := ph.QueryAllPostsForTheList(user.ID)
 	if err != nil {
 		log.Error.Printf("msg='could not query all posts' err='%s'\n", err.Error())
 		http.Error(w, "Could not retrieve posts", http.StatusInternalServerError)
+	}
+
+	if len(records) == 0 {
+		ph.renderList(w, nil, 1, 1)
+		return
 	}
 
 	sizeOfPage := 5
@@ -52,19 +57,18 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cutFrom := (page - 1) * sizeOfPage
 	cutTo := cutFrom + sizeOfPage
-	finalCutTo := int(math.Min(float64(len(records)-1), float64(cutTo)))
+	finalCutTo := int(math.Min(float64(len(records)), float64(cutTo)))
 
 	records = records[cutFrom:finalCutTo]
-	log.Debug.Printf("msg='getting records' pageindex='%d' cutIndex='%d'", (page-1)*sizeOfPage, cutFrom)
 
 	var postListItems []PostListItem
 	for _, record := range records {
 
-		cutLength := 100
+		descCutLength := 100
 
 		CutOfDescription := record.Description
-		if len(CutOfDescription) > cutLength {
-			CutOfDescription = CutOfDescription[:cutLength] + " …"
+		if len(CutOfDescription) > descCutLength {
+			CutOfDescription = CutOfDescription[:descCutLength] + " …"
 		}
 
 		postListItems = append(postListItems, PostListItem{
@@ -81,6 +85,15 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	ph.renderList(w, postListItems, page, totalPages)
+}
+
+func (ph *PostHandler) renderList(
+	w http.ResponseWriter,
+	postListItems []PostListItem,
+	page int,
+	totalPages int,
+) {
 	render.RenderTemplate(w, "src/post/post-list.html", &render.Page{
 		Title: "Posts",
 		Data: struct {
