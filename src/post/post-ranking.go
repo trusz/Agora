@@ -2,6 +2,7 @@ package post
 
 import (
 	"agora/src/log"
+	"fmt"
 	"math"
 	"time"
 )
@@ -22,6 +23,18 @@ func (ph *PostHandler) GenerateNewRanks() {
 			log.Error.Printf("Could not update rank for post %d: %v", post.ID, err)
 		}
 	}
+}
+
+func (ph *PostHandler) GenerateNewRanksForPost(postID int) error {
+	post, err := ph.QueryOnePost(postID)
+	if err != nil {
+		return fmt.Errorf("could not retrieve post %d: %v", postID, err)
+	}
+
+	newRank := ph.calculatePostRank(post.FNrOfVotes, post.CreatedAt)
+	ph.UpdateRank(post.ID, newRank)
+
+	return nil
 }
 
 // score = (votes - 1) / (age in hours + damper)^gravity

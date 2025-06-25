@@ -88,9 +88,10 @@ func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 	rows, err := ph.db.Query(
 		`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id,
+			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id, p.rank,
 			u.name,
-			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments
+			(SELECT count(*) FROM comments c WHERE fk_post_id=p.id ) nr_comments,
+			(SELECT count(*) FROM votes v WHERE fk_post_id=p.id ) nr_votes
 		FROM posts p
 		LEFT JOIN users u ON u.id = p.fk_user_id
 		WHERE p.id = ?`,
@@ -111,9 +112,11 @@ func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 			&record.URL,
 			&record.Description,
 			&record.CreatedAt,
+			&record.Rank,
 			&record.FUserID,
 			&record.FUserName,
 			&record.FNrOfComments,
+			&record.FNrOfVotes,
 		)
 
 		if err != nil {
@@ -129,14 +132,11 @@ func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 }
 
 type PostDetailRecord struct {
-	ID            int64
-	Title         string
-	URL           sql.NullString
-	Description   string
-	CreatedAt     string
+	PostRecord
 	FUserID       string
 	FUserName     string
 	FNrOfComments int
+	FNrOfVotes    int
 }
 
 func (ph *PostHandler) QueryAllPostsForTheList(userID string) ([]PostListRecord, error) {

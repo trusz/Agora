@@ -13,7 +13,8 @@ type Ranker struct {
 
 func NewRanker(ph *post.PostHandler) *Ranker {
 	return &Ranker{
-		hourTicker: time.NewTicker(time.Second * 10),
+		// hourTicker: time.NewTicker(time.Second * 10),
+		hourTicker: time.NewTicker(time.Hour),
 		ph:         ph,
 	}
 }

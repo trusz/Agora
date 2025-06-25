@@ -77,5 +77,6 @@ func (vh *VoteHandler) VotePOSTHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not process vote", http.StatusInternalServerError)
 		return
 	}
+	vh.ph.GenerateNewRanksForPost(int(postID.Int64))
 	http.Redirect(w, r, "/posts#post-"+strconv.FormatInt(postID.Int64, 10), http.StatusSeeOther)
 }

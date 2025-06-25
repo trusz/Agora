@@ -79,7 +79,7 @@ func (s *Server) Start() Stopper {
 	postHandler := post.NewPostHandler(db, commentHandler)
 	postHandler.CreateDBTable()
 
-	voteHandler := vote.NewVoteHandler(db)
+	voteHandler := vote.NewVoteHandler(db, postHandler)
 	voteHandler.CreateDBTable()
 
 	rnk := ranker.NewRanker(postHandler)
