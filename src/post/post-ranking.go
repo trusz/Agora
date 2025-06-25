@@ -17,7 +17,6 @@ func (ph *PostHandler) GenerateNewRanks() {
 
 	for _, post := range posts {
 		score := ph.calculatePostRank(post.FNrOfVotes, post.CreatedAt)
-		log.Debug.Printf("Post ID: %d, Votes: %d, CreatedAt: %s, Rank: %d", post.ID, post.FNrOfVotes, post.CreatedAt, score)
 		err = ph.UpdateRank(post.ID, score)
 		if err != nil {
 			log.Error.Printf("Could not update rank for post %d: %v", post.ID, err)
@@ -60,6 +59,6 @@ func (ph *PostHandler) calculatePostRank(votes int, creationDate string) int {
 	denominator := math.Pow(float64(ageInHours+damper), gravity)
 	score := factor * (numerator / denominator)
 
-	log.Debug.Printf("score='%v' numerator='%v' denominator='%v' ageinhours='%v' \n", score, numerator, denominator, ageInHours)
+	// log.Debug.Printf("score='%v' numerator='%v' denominator='%v' ageinhours='%v' \n", score, numerator, denominator, ageInHours)
 	return int(score)
 }

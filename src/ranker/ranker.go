@@ -34,7 +34,6 @@ func (r *Ranker) Start() {
 			}
 
 			<-r.hourTicker.C
-			log.Debug.Println("running post ranking")
 			r.RankPosts()
 		}
 	}()

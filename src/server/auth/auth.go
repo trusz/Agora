@@ -26,7 +26,7 @@ func generateOAuth2Config(clientID, clientSecret, tenantID string) *oauth2.Confi
 	return &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		RedirectURL:  "http://localhost:54324/", //  in my case RedirectURL:  "http://localhost:8080/callback"
+		RedirectURL:  "http://localhost:54324/login/callback", //  in my case RedirectURL:  "http://localhost:8080/callback"
 		Scopes:       []string{"User.Read"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://login.microsoftonline.com/" + tenantID + "/oauth2/v2.0/authorize",

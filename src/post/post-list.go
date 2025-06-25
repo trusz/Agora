@@ -33,7 +33,6 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 	sizeOfPage := 5
 	page := 1
 	totalPages := int(math.Ceil(float64(len(records)) / float64(sizeOfPage)))
-	log.Debug.Printf("page='%d', totalPages='%d' nrRecords='%d'\n", page, totalPages, len(records))
 
 	qPage := r.URL.Query().Get("page")
 	if qPage != "" {

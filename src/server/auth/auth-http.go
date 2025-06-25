@@ -7,14 +7,15 @@ import (
 	"net/http"
 )
 
+const loginURL = "/login"
+const callbackURL = "/login/callback"
+
 func (ah *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		cookieFound := err == nil && cookie.Value != ""
 
-		tryingToLogin := r.URL.Path == "/login" ||
-			r.URL.Path == "/callback" ||
-			(r.URL.Path == "/" && r.URL.Query().Get("code") != "")
+		tryingToLogin := r.URL.Path == loginURL || r.URL.Path == callbackURL
 
 		if !cookieFound {
 			if tryingToLogin {
@@ -22,7 +23,7 @@ func (ah *AuthHandler) Middleware(next http.Handler) http.Handler {
 				return
 			}
 
-			http.Redirect(w, r, "/login", http.StatusFound)
+			http.Redirect(w, r, loginURL, http.StatusFound)
 			return
 		}
 
@@ -33,14 +34,14 @@ func (ah *AuthHandler) Middleware(next http.Handler) http.Handler {
 				return
 			}
 			log.Error.Printf("Invalid token: %v, redirecting to login\n", err)
-			http.Redirect(w, r, "/login", http.StatusFound)
+			http.Redirect(w, r, loginURL, http.StatusFound)
 			return
 		}
 
 		claims, ok := token.Claims.(*CustomClaims)
 		if !ok {
 			log.Error.Println("Token claims are not of type CustomClaims, redirecting to login")
-			http.Redirect(w, r, "/login", http.StatusFound)
+			http.Redirect(w, r, loginURL, http.StatusFound)
 			return
 		}
 
