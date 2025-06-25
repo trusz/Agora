@@ -96,8 +96,8 @@ func (s *Server) Start() Stopper {
 		//
 		router.StrictSlash(true)
 		// router.Use(loggingMiddleware)
-		router.Use(authHandler.Middleware)
-		// router.Use(authHandler.MockMiddleware)
+		// router.Use(authHandler.Middleware)
+		router.Use(authHandler.MockMiddleware)
 		router.PathPrefix("/static/").Handler(fs)
 
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
@@ -110,6 +110,7 @@ func (s *Server) Start() Stopper {
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitGETHandler).Methods("GET")
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
+		router.HandleFunc("/posts/{id}/delete", postHandler.PostDetailDELETEHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}/comment", postHandler.PostCommentPOSTHandler).Methods("POST")
 
 		router.HandleFunc("/vote", voteHandler.VotePOSTHandler).Methods("POST")

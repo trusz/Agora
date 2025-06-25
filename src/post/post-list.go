@@ -71,7 +71,6 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 		if len(CutOfDescription) > descCutLength {
 			CutOfDescription = CutOfDescription[:descCutLength] + " …"
 		}
-
 		postListItems = append(postListItems, PostListItem{
 			ID:               int(record.ID),
 			Title:            record.Title,
@@ -82,6 +81,7 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 			NumberOfComments: record.FNrOfComments,
 			NumberOfVotes:    record.FNrOfVotes,
 			UserVoted:        record.UserVoted == 1,
+			UserIsAuthor:     record.UserIsAuthor == 1,
 		})
 
 	}
@@ -129,4 +129,5 @@ type PostListItem struct {
 	NumberOfComments int
 	NumberOfVotes    int
 	UserVoted        bool
+	UserIsAuthor     bool
 }

@@ -92,6 +92,41 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 	)
 }
 
+func (ph *PostHandler) PostDetailDELETEHandler(w http.ResponseWriter, r *http.Request) {
+	user, ok := auth.ExtractUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	varPostID := vars["id"]
+
+	postID, err := strconv.Atoi(varPostID)
+	if err != nil {
+		log.Error.Printf(
+			"msg='could not convert postid from string to int' postID='%s'\n",
+			varPostID)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := ph.deletePost(postID, user.ID); err != nil {
+		log.Error.Printf("msg='could not delete post' postID='%d' userID='%s' err='%s'\n", postID, user.ID, err.Error())
+		http.Error(w, "Could not delete post", http.StatusInternalServerError)
+		return
+	}
+
+	ph.ch.RemoveAllCommentsOfPost(postID)
+	// TODO: should remove votes,
+	// but the vote handler already uses post handler
+	// so we cannot create a circular dependency
+	// Move interaction to a channel and messages?
+	// ph.vh.RemoveAllVotesOfPost(postID)
+
+	http.Redirect(w, r, "/posts/", http.StatusSeeOther)
+}
+
 type PostDetailItem struct {
 	ID               int
 	Title            string

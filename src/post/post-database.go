@@ -148,11 +148,13 @@ func (ph *PostHandler) QueryAllPostsForTheList(userID string) ([]PostListRecord,
 			u.name,
 			(Select count(*) from comments c where fk_post_id=p.id ) nr_comments,
 			(Select count(*) from votes v where fk_post_id=p.id ) nr_votes,
-			(select count(*) > 0 from votes v where v.fk_post_id = p.id and v.fk_user_id = ?) user_voted
+			(select count(*) > 0 from votes v where v.fk_post_id = p.id and v.fk_user_id = ?) user_voted,
+			p.fk_user_id = ? is_user_author
 		FROM posts p
 		LEFT JOIN users u ON u.id = p.fk_user_id
 		ORDER BY p.rank DESC, p.created_at DESC
 	`,
+		userID,
 		userID,
 	)
 	if err != nil {
@@ -175,6 +177,7 @@ func (ph *PostHandler) QueryAllPostsForTheList(userID string) ([]PostListRecord,
 			&record.FNrOfComments,
 			&record.FNrOfVotes,
 			&record.UserVoted,
+			&record.UserIsAuthor,
 		)
 		if err != nil {
 			log.Error.Printf("Could not scan post: error=%v rows=%v", err, rows)
@@ -233,7 +236,7 @@ type PostListRecord struct {
 	FNrOfVotes    int
 	FNUserVoted   int
 	UserVoted     int
-	Rank          int
+	UserIsAuthor  int
 }
 
 type PostForRanking struct {
@@ -250,6 +253,20 @@ func (ph *PostHandler) UpdateRank(postID int64, rank int) error {
 	)
 	if err != nil {
 		log.Error.Printf("Error updating post rank: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (ph *PostHandler) deletePost(postID int, userID string) error {
+	// Delete a post from the database
+	_, err := ph.db.Exec(
+		`DELETE FROM posts WHERE id = ? AND fk_user_id = ?`,
+		postID,
+		userID,
+	)
+	if err != nil {
+		log.Error.Printf("Error deleting post: %v", err)
 		return err
 	}
 	return nil
