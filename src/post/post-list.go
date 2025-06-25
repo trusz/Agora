@@ -8,6 +8,8 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+
+	"golang.org/x/net/context"
 )
 
 func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +28,7 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(records) == 0 {
-		ph.renderList(w, nil, 1, 1)
+		ph.renderList(w, nil, 1, 1, r.Context())
 		return
 	}
 
@@ -84,7 +86,7 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	ph.renderList(w, postListItems, page, totalPages)
+	ph.renderList(w, postListItems, page, totalPages, r.Context())
 }
 
 func (ph *PostHandler) renderList(
@@ -92,23 +94,29 @@ func (ph *PostHandler) renderList(
 	postListItems []PostListItem,
 	page int,
 	totalPages int,
+	ctx context.Context,
 ) {
-	render.RenderTemplate(w, "src/post/post-list.html", &render.Page{
-		Title: "Posts",
-		Data: struct {
-			Posts       []PostListItem
-			HasPrevPage bool
-			HasNextPage bool
-			PrevPage    int
-			NextPage    int
-		}{
-			Posts:       postListItems,
-			HasPrevPage: page > 1,
-			HasNextPage: page < totalPages,
-			PrevPage:    page - 1,
-			NextPage:    page + 1,
+	render.RenderTemplate(
+		w,
+		"src/post/post-list.html",
+		&render.Page{
+			Title: "Posts",
+			Data: struct {
+				Posts       []PostListItem
+				HasPrevPage bool
+				HasNextPage bool
+				PrevPage    int
+				NextPage    int
+			}{
+				Posts:       postListItems,
+				HasPrevPage: page > 1,
+				HasNextPage: page < totalPages,
+				PrevPage:    page - 1,
+				NextPage:    page + 1,
+			},
 		},
-	})
+		ctx,
+	)
 }
 
 type PostListItem struct {

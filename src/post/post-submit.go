@@ -11,10 +11,15 @@ import (
 
 func (ph *PostHandler) PostSubmitGETHandler(w http.ResponseWriter, r *http.Request) {
 
-	render.RenderTemplate(w, "src/post/post-submit.html", &render.Page{
-		Title: "Submit Post",
-		Data:  nil,
-	})
+	render.RenderTemplate(
+		w,
+		"src/post/post-submit.html",
+		&render.Page{
+			Title: "Submit Post",
+			Data:  nil,
+		},
+		r.Context(),
+	)
 }
 
 func (ph *PostHandler) PostSubmitPOSTHandler(w http.ResponseWriter, r *http.Request) {

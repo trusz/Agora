@@ -86,6 +86,7 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		w,
 		"src/post/post-detail.html",
 		pageData,
+		r.Context(),
 		"src/post/comment/comment-form.html",
 		"src/post/comment/comment-list.html",
 	)

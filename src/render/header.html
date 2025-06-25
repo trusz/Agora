@@ -9,14 +9,17 @@
 		<!-- <li><a href="/settings">Settings</a></li> -->
 		<!-- <li><a href="/about">About</a></li> -->
 	</ul>
+	<avatar>{{ .User.Name }}</avatar>
 </nav>
 <style>
 	#main-nav {
-
+		display: grid;
+		grid-template-columns: 1fr auto auto;
 		align-items: center;
-		display: flex;
+		/* display: flex; */
+		/* justify-content: space-between; */
+
 		font-weight: bold;
-		justify-content: space-between;
 		background-color: none;
 		margin: 0;
 
@@ -36,6 +39,13 @@
 			margin: 0 0.5rem;
 			position: relative;
 			text-align: left;
+		}
+
+		avatar {
+			padding: 0.5rem 1rem;
+			background-color: #E9EBEF;
+			border: 1px thin #D1D3D7;
+
 		}
 	}
 </style>
