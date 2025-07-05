@@ -46,7 +46,6 @@ func (ah *AuthHandler) HandleLoginCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	log.Pretty(user)
 	if !ah.userHandler.UserExists(user.ID) {
 		ah.userHandler.AddUser(user.ID, user.DisplayName, user.Mail)
 	}

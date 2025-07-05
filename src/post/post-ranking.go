@@ -59,6 +59,5 @@ func (ph *PostHandler) calculatePostRank(votes int, creationDate string) int {
 	denominator := math.Pow(float64(ageInHours+damper), gravity)
 	score := factor * (numerator / denominator)
 
-	// log.Debug.Printf("score='%v' numerator='%v' denominator='%v' ageinhours='%v' \n", score, numerator, denominator, ageInHours)
 	return int(score)
 }

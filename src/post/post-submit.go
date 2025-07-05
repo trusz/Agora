@@ -5,20 +5,25 @@ import (
 	"agora/src/render"
 	"agora/src/server/auth"
 	"agora/src/x/sanitize"
+	_ "embed"
 	"net/http"
 	"strconv"
 )
+
+//go:embed post-submit.html
+var postSubmitTemplate string
 
 func (ph *PostHandler) PostSubmitGETHandler(w http.ResponseWriter, r *http.Request) {
 
 	render.RenderTemplate(
 		w,
-		"src/post/post-submit.html",
+		"post-submit.html",
 		&render.Page{
 			Title: "Submit Post",
 			Data:  nil,
 		},
 		r.Context(),
+		postSubmitTemplate,
 	)
 }
 

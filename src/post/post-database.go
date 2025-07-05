@@ -88,7 +88,7 @@ func (ph *PostHandler) QueryOnePost(id int) (PostDetailRecord, error) {
 	rows, err := ph.db.Query(
 		`
 		SELECT 
-			p.id, p.title, p.url, p.description, p.created_at, p.fk_user_id, p.rank,
+			p.id, p.title, p.url, p.description, p.created_at, p.rank, p.fk_user_id,
 			u.name,
 			(SELECT count(*) FROM comments c WHERE fk_post_id=p.id ) nr_comments,
 			(SELECT count(*) FROM votes v WHERE fk_post_id=p.id ) nr_votes

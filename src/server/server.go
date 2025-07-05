@@ -76,6 +76,7 @@ func (s *Server) Start() Stopper {
 		env.AzureTenantID,
 		env.AzureClientID,
 		env.AzureClientSecret,
+		env.AzureRedirectURL,
 		userHandler,
 	)
 
@@ -102,8 +103,8 @@ func (s *Server) Start() Stopper {
 		//
 		router.StrictSlash(true)
 		// router.Use(loggingMiddleware)
-		// router.Use(authHandler.Middleware)
-		router.Use(authHandler.MockMiddleware)
+		router.Use(authHandler.Middleware)
+		// router.Use(authHandler.MockMiddleware)
 		router.PathPrefix("/static/").Handler(fs)
 
 		router.HandleFunc("/", postHandler.PostListHandler).Methods("GET")
@@ -189,6 +190,7 @@ type Env struct {
 	AzureTenantID     string
 	AzureClientID     string
 	AzureClientSecret string
+	AzureRedirectURL  string
 	JWTSecret         string
 }
 
@@ -202,6 +204,7 @@ func LoadEnv() Env {
 		AzureTenantID:     os.Getenv("AZURE_TENANT_ID"),
 		AzureClientID:     os.Getenv("AZURE_CLIENT_ID"),
 		AzureClientSecret: os.Getenv("AZURE_CLIENT_SECRET"),
+		AzureRedirectURL:  os.Getenv("AZURE_REDIRECT_URL"),
 		JWTSecret:         os.Getenv("JWT_SECRET"),
 	}
 

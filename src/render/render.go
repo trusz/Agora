@@ -4,10 +4,16 @@ import (
 	"agora/src/log"
 	"agora/src/server/auth"
 	"context"
+	_ "embed"
 	"net/http"
-	"path/filepath"
 	"text/template"
 )
+
+//go:embed layout.html
+var layoutTemplate string
+
+//go:embed header.html
+var headerTemplate string
 
 func RenderTemplate(
 	w http.ResponseWriter,
@@ -23,40 +29,26 @@ func RenderTemplate(
 		return
 	}
 
-	renderDir := "src/render"
-	templates, err := filepath.Glob(renderDir + "/*.html")
-	if err != nil {
-		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	var templates []string
 
-	// Add the specific template if it's not already included
-	alreadyIncluded := false
-
-	for _, t := range templates {
-		if t == templateToExecute {
-			alreadyIncluded = true
-			break
-		}
-	}
-	if !alreadyIncluded {
-		templates = append(templates, templateToExecute)
-	}
-
+	templates = append(templates, layoutTemplate)
+	templates = append(templates, headerTemplate)
 	templates = append(templates, includedTemplates...)
 
 	// Parse all templates
-	ts, err := template.ParseFiles(templates...)
-	if err != nil {
-		http.Error(w, "Template parse error: "+err.Error(), http.StatusInternalServerError)
-		return
+	parsedTemplates := template.New("all")
+	for _, tmpl := range templates {
+		var err error
+		parsedTemplates, err = parsedTemplates.Parse(tmpl)
+		if err != nil {
+			log.Error.Printf("msg='could not parse template' template='%s' err='%s'\n", tmpl, err.Error())
+		}
 	}
 
 	page.User.Name = user.Name
 
-	err = ts.ExecuteTemplate(w, filepath.Base(templateToExecute), page)
+	err := parsedTemplates.ExecuteTemplate(w, templateToExecute, page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }

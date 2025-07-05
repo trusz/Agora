@@ -5,6 +5,7 @@ import (
 	"agora/src/render"
 	"agora/src/server/auth"
 	"agora/src/x/date"
+	_ "embed"
 	"math"
 	"net/http"
 	"strconv"
@@ -94,6 +95,9 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 	ph.renderList(w, postListItems, page, totalPages, r.Context())
 }
 
+//go:embed post-list.html
+var postListTemplate string
+
 func (ph *PostHandler) renderList(
 	w http.ResponseWriter,
 	postListItems []PostListItem,
@@ -101,9 +105,10 @@ func (ph *PostHandler) renderList(
 	totalPages int,
 	ctx context.Context,
 ) {
+
 	render.RenderTemplate(
 		w,
-		"src/post/post-list.html",
+		"post-list.html",
 		&render.Page{
 			Title: "Posts",
 			Data: struct {
@@ -121,6 +126,7 @@ func (ph *PostHandler) renderList(
 			},
 		},
 		ctx,
+		postListTemplate,
 	)
 }
 

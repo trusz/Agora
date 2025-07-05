@@ -10,10 +10,21 @@ import (
 	"net/http"
 	"strconv"
 
+	_ "embed"
+
 	"github.com/gorilla/mux"
 )
 
 // TODO: try this out: https://go.dev/blog/slog
+
+//go:embed post-detail.html
+var postDetailTemplate string
+
+//go:embed comment/comment-form.html
+var commentFormTemplate string
+
+//go:embed comment/comment-list.html
+var commentListTemplate string
 
 func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -80,15 +91,14 @@ func (ph *PostHandler) PostDetailGETHandler(w http.ResponseWriter, r *http.Reque
 		},
 	}
 
-	// log.Pretty("pageData", pageData)
-
 	render.RenderTemplate(
 		w,
-		"src/post/post-detail.html",
+		"post-detail.html",
 		pageData,
 		r.Context(),
-		"src/post/comment/comment-form.html",
-		"src/post/comment/comment-list.html",
+		postDetailTemplate,
+		commentFormTemplate,
+		commentListTemplate,
 	)
 }
 
