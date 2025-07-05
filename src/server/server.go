@@ -29,6 +29,7 @@ type Server struct {
 	stop    chan os.Signal
 	stopped chan struct{}
 	server  *http.Server
+	dbpath  string
 }
 
 // NewServer creates a new Server
@@ -39,11 +40,13 @@ type Server struct {
 func NewServer(
 	host string,
 	port string,
+	dbpath string,
 ) (s *Server) {
 
 	return &Server{
 		host:    host,
 		port:    port,
+		dbpath:  dbpath,
 		stop:    make(chan os.Signal, 1),
 		stopped: make(chan struct{}, 1),
 	}
@@ -59,7 +62,10 @@ func (s *Server) Start() Stopper {
 	env := LoadEnv()
 	address := fmt.Sprintf("%s:%s", s.host, s.port)
 
-	db, _ := db.Open("tmp/agora_local.db")
+	db, err := db.Open(s.dbpath)
+	if err != nil {
+		log.Error.Fatalf("msg='could not open database' dbpath='%s' err='%s'\n", s.dbpath, err)
+	}
 	userHandler := user.NewUserHandler(db)
 	userHandler.CreateDBTable()
 

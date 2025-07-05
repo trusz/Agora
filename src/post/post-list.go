@@ -81,7 +81,12 @@ func (ph *PostHandler) PostListHandler(w http.ResponseWriter, r *http.Request) {
 			NumberOfComments: record.FNrOfComments,
 			NumberOfVotes:    record.FNrOfVotes,
 			UserVoted:        record.UserVoted == 1,
-			UserIsAuthor:     record.UserIsAuthor == 1,
+			// Disabled this flag to turn off delete functionality
+			// For that to really work we need to setup a message queue (MQ)
+			// between the modules so modules can react to deletions
+			// with out a MQ we would have a circular dependency
+			// UserIsAuthor:     record.UserIsAuthor == 1,
+			UserIsAuthor: false,
 		})
 
 	}
