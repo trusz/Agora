@@ -5,8 +5,9 @@ import (
 	"agora/src/server/auth"
 	"context"
 	_ "embed"
+	"html/template"
 	"net/http"
-	"text/template"
+	"time"
 )
 
 //go:embed layout.html
@@ -35,8 +36,16 @@ func RenderTemplate(
 	templates = append(templates, headerTemplate)
 	templates = append(templates, includedTemplates...)
 
-	// Parse all templates
-	parsedTemplates := template.New("all")
+	// Define custom template functions
+	funcMap := template.FuncMap{
+		"add":  func(a, b int) int { return a + b },
+		"sub":  func(a, b int) int { return a - b },
+		"html": func(s string) template.HTML { return template.HTML(s) },
+		"year": func() int { return time.Now().Year() },
+	}
+
+	// Parse all templates with custom functions
+	parsedTemplates := template.New("all").Funcs(funcMap)
 	for _, tmpl := range templates {
 		var err error
 		parsedTemplates, err = parsedTemplates.Parse(tmpl)

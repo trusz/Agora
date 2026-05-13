@@ -6,7 +6,9 @@ node_modules/
 /test-results/
 /playwright-report/
 /blob-report/
+.playwright-mcp
 /playwright/.cache/
 /playwright-report/
 /test-results
 .env
+.DS_Store

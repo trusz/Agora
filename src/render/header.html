@@ -10,12 +10,16 @@
 		<!-- <li><a href="/settings">Settings</a></li> -->
 		<!-- <li><a href="/about">About</a></li> -->
 	</ul>
+	<form action="/search" method="get" class="nav-search">
+		<input type="text" name="q" placeholder="Search…">
+		<button type="submit">Search</button>
+	</form>
 	<avatar>{{ .User.Name }}</avatar>
 </nav>
 <style>
 	#main-nav {
 		display: grid;
-		grid-template-columns: 1fr auto auto;
+		grid-template-columns: 1fr auto auto auto;
 		align-items: center;
 		/* display: flex; */
 		/* justify-content: space-between; */
@@ -47,10 +51,37 @@
 		}
 
 		avatar {
-			padding: 0.5rem 1rem;
+			padding: 0 1rem;
 			background-color: #E9EBEF;
 			border: 1px thin #D1D3D7;
+			height: 2rem;
+			display: inline-flex;
+			align-items: center;
+			margin-left: 0.5rem;
+		}
 
+		.nav-search {
+			display: flex;
+			gap: 0.25rem;
+			align-items: center;
+			margin: 0;
+			padding: 0;
+
+			input[type="text"],
+			button {
+				height: 2rem;
+				padding: 0 0.5rem;
+				border: 1px solid var(--gray-3);
+				font-size: 0.9rem;
+				box-sizing: border-box;
+				line-height: 1;
+				margin: 0;
+			}
+
+			button {
+				padding: 0 0.6rem;
+				border: none;
+			}
 		}
 	}
 </style>

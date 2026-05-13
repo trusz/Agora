@@ -50,7 +50,7 @@ type CommentInsertRecord struct {
 
 func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]CommentListRecord, error) {
 	rows, err := ch.db.Query(
-		`SELECT c.id, c.text, c.created_at, u.name
+		`SELECT c.id, c.text, c.created_at, c.fk_user_id, u.name
 		 FROM comments c
 		 LEFT JOIN users u ON u.id = c.fk_user_id
 		 WHERE c.fk_post_id = ?`,
@@ -69,6 +69,7 @@ func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]CommentListRec
 			&record.ID,
 			&record.Text,
 			&record.CreatedAt,
+			&record.UserID,
 			&record.UserName,
 		)
 		if err != nil {
@@ -80,6 +81,37 @@ func (ch *CommentHandler) QueryAllCommentyByPostID(postID int) ([]CommentListRec
 	}
 
 	return records, nil
+}
+
+func (ch *CommentHandler) UpdateCommentText(commentID int, userID string, text string) (bool, error) {
+	result, err := ch.db.Exec(
+		`UPDATE comments SET text = ? WHERE id = ? AND fk_user_id = ?`,
+		text, commentID, userID,
+	)
+	if err != nil {
+		log.Error.Printf("Error updating comment: %v", err)
+		return false, err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
+func (ch *CommentHandler) QueryCommentByID(commentID int) (CommentListRecord, error) {
+	var record CommentListRecord
+	err := ch.db.QueryRow(
+		`SELECT c.id, c.text, c.created_at, c.fk_user_id, u.name
+		 FROM comments c
+		 LEFT JOIN users u ON u.id = c.fk_user_id
+		 WHERE c.id = ?`,
+		commentID,
+	).Scan(&record.ID, &record.Text, &record.CreatedAt, &record.UserID, &record.UserName)
+	if err != nil {
+		return CommentListRecord{}, err
+	}
+	return record, nil
 }
 
 type CommentListRecord struct {

@@ -1,0 +1,250 @@
+{{ define "post-search.html" }}
+{{ template "layout.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<div class="search-page">
+	<h1>Search</h1>
+	<form action="/search" method="get" class="search-form">
+		<input type="text"
+			   name="q"
+			   value="{{ .Data.Query }}"
+			   placeholder="Search titles, descriptions, comments…"
+			   minlength="3"
+			   autofocus>
+		<button type="submit">Search</button>
+	</form>
+
+	{{ if .Data.Query }}
+		{{ if lt (len .Data.Query) 3 }}
+		<p class="search-meta">Please enter at least 3 characters to search.</p>
+		{{ else }}
+		<p class="search-meta">
+			{{ .Data.TotalResults }} result{{ if ne .Data.TotalResults 1 }}s{{ end }} for <strong>{{ .Data.Query }}</strong>
+		</p>
+		<div class="post-list">
+			<ul>
+				{{ range .Data.Results }}
+				<li id="post-{{ .ID }}">
+					<votes>
+						<div>
+							{{ if not .UserVoted }}
+							<form action="/vote" method="post">
+								<input type="hidden" name="post_id" value="{{ .ID }}">
+								<button type="submit" class="vote-button">
+									<img class="icon" src="/static/icons/upvote.svg" alt="Upvote">
+								</button>
+							</form>
+							{{ end }}
+						</div>
+						<numberofvotes>{{ .NumberOfVotes }}</numberofvotes>
+					</votes>
+					<content>
+						{{ if .URL }}
+						<a href="{{ .URL }}" class="post-title">{{ .Title }}</a>
+						{{ else }}
+						<a href="/posts/{{ .ID }}" class="post-title">{{ .Title }}</a>
+						{{ end }}
+						
+						{{ if eq .MatchType "comment" }}
+							<small class="match-snippet">
+								<span class="match-label">Match in comment:</span>
+								<span class="snippet-text">{{ .MatchSnippet | html }}</span>
+							</small>
+						{{ else }}
+							<small><a href="/posts/{{ .ID }}">{{ .Description }}</a></small>
+						{{ end }}
+						
+						<small>
+							Posted by {{ .UserName }} · {{ .CreatedAt }} ·
+							<a href="/posts/{{ .ID }}">{{ .NumberOfComments }} Comments</a>
+						</small>
+					</content>
+				</li>
+				{{ else }}
+				<li>No results found.</li>
+				{{ end }}
+			</ul>
+		</div>
+
+		{{ if gt .Data.TotalPages 1 }}
+		<div class="pagination">
+			{{ if gt .Data.CurrentPage 1 }}
+			<a href="/search?q={{ .Data.Query }}&page={{ sub .Data.CurrentPage 1 }}" class="pagination-link">← Previous</a>
+			{{ end }}
+			
+			<span class="pagination-info">
+				Page {{ .Data.CurrentPage }} of {{ .Data.TotalPages }}
+			</span>
+			
+			{{ if lt .Data.CurrentPage .Data.TotalPages }}
+			<a href="/search?q={{ .Data.Query }}&page={{ add .Data.CurrentPage 1 }}" class="pagination-link">Next →</a>
+			{{ end }}
+		</div>
+		{{ end }}
+		{{ end }}
+	{{ end }}
+</div>
+<style>
+	.search-page {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding-top: 1rem;
+
+		.search-form {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+
+			input[type="text"] {
+				flex: 1;
+				padding: 0.5rem 0.75rem;
+				border: 1px solid var(--gray-3);
+				font-size: 1rem;
+				box-sizing: border-box;
+			}
+
+			button {
+				padding: 0.5rem 1rem;
+				box-sizing: border-box;
+				align-self: stretch;
+			}
+		}
+
+		.search-meta {
+			color: var(--gray-5);
+			font-size: 0.9rem;
+		}
+
+		.post-list ul {
+			list-style-type: none;
+			padding: 0;
+			display: grid;
+			gap: 0.75rem;
+		}
+
+		.post-list li {
+			display: grid;
+			grid-template-columns: 2rem 1fr;
+			border: var(--gray-1) 1px solid;
+			transition: all 0.2s ease-in-out;
+			gap: 0.5rem;
+			padding: 0;
+		}
+
+		votes {
+			background: #E9EBEF;
+			display: grid;
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr 1fr 1fr;
+		}
+
+		content {
+			padding: 0.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.post-title {
+			font-weight: 500;
+		}
+
+		.match-snippet {
+			display: block;
+			padding: 0.5rem;
+			background: #FFF9E6;
+			border-left: 3px solid #FFD700;
+			margin: 0.25rem 0;
+		}
+
+		.match-label {
+			font-weight: 600;
+			color: var(--gray-6);
+			display: block;
+			margin-bottom: 0.25rem;
+		}
+
+		.snippet-text {
+			display: block;
+			font-style: italic;
+			color: var(--gray-6);
+		}
+
+		.snippet-text mark,
+		.post-title mark,
+		content small mark {
+			background: #FFD700;
+			padding: 0.1rem 0.2rem;
+			font-weight: 600;
+			color: #000;
+		}
+
+		form {
+			margin: 0;
+			padding: 0;
+			min-width: 0;
+			display: grid;
+			place-items: center;
+		}
+
+		button[type="submit"] {
+			padding: 0;
+			margin: 0;
+			background: none;
+			justify-self: center;
+			border: none;
+			color: var(--foreground);
+		}
+
+		.search-form button[type="submit"] {
+			padding: 0.5rem 1rem;
+			background: var(--foreground);
+			color: var(--background);
+			border: none;
+			cursor: pointer;
+		}
+
+		numberofvotes {
+			display: block;
+			text-align: center;
+			font-weight: bold;
+			color: var(--foreground);
+		}
+
+		.icon {
+			height: 1rem;
+		}
+
+		.pagination {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 1rem;
+			padding: 1rem 0;
+			margin-top: 1rem;
+			border-top: 1px solid var(--gray-2);
+		}
+
+		.pagination-link {
+			padding: 0.5rem 1rem;
+			background: var(--gray-1);
+			border: 1px solid var(--gray-3);
+			text-decoration: none;
+			color: var(--foreground);
+			transition: all 0.2s;
+		}
+
+		.pagination-link:hover {
+			background: var(--gray-2);
+			border-color: var(--gray-4);
+		}
+
+		.pagination-info {
+			color: var(--gray-5);
+			font-size: 0.9rem;
+		}
+	}
+</style>
+{{ end }}

@@ -86,6 +86,20 @@ func (s *Server) Start() Stopper {
 	postHandler := post.NewPostHandler(db, commentHandler)
 	postHandler.CreateDBTable()
 
+	// Initialize FTS5 tables for search
+	err = postHandler.CreateFTS5Tables()
+	if err != nil {
+		log.Error.Printf("msg='could not create FTS5 tables' err='%s'\n", err.Error())
+	} else {
+		// Rebuild FTS5 index from existing data
+		err = postHandler.RebuildFTS5Index()
+		if err != nil {
+			log.Error.Printf("msg='could not rebuild FTS5 index' err='%s'\n", err.Error())
+		} else {
+			log.Info.Println("FTS5 search initialized successfully")
+		}
+	}
+
 	voteHandler := vote.NewVoteHandler(db, postHandler)
 	voteHandler.CreateDBTable()
 
@@ -118,7 +132,11 @@ func (s *Server) Start() Stopper {
 		router.HandleFunc("/posts/submit", postHandler.PostSubmitPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}", postHandler.PostDetailGETHandler).Methods("GET")
 		router.HandleFunc("/posts/{id}/delete", postHandler.PostDetailDELETEHandler).Methods("POST")
+		router.HandleFunc("/posts/{id}/edit", postHandler.PostEditPOSTHandler).Methods("POST")
 		router.HandleFunc("/posts/{id}/comment", postHandler.PostCommentPOSTHandler).Methods("POST")
+		router.HandleFunc("/posts/{id}/comment/{commentID}/edit", postHandler.CommentEditPOSTHandler).Methods("POST")
+
+		router.HandleFunc("/search", postHandler.PostSearchGETHandler).Methods("GET")
 
 		router.HandleFunc("/vote", voteHandler.VotePOSTHandler).Methods("POST")
 

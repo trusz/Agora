@@ -3,21 +3,117 @@
 {{ end }}
 
 {{ define "content" }}
-<small><a href="/posts">← Back to all posts</a></small>
-<h1>{{ .Data.Post.Title }} [ {{ .Data.Post.ID }} ]</h1>
-<small>
-	{{ if .Data.Post.URL }}
-	<a href="{{ .Data.Post.URL }}">{{ .Data.Post.URL }}</a> ·.
-	{{ end }}
-	Posted by {{ .Data.Post.UserName }} · {{ .Data.Post.CreatedAt }} · {{ .Data.Post.NumberOFComments }} Comments
-</small>
-<p>
-	{{ .Data.Post.Description }}
-</p>
+<post-detail>
+	<small><a href="/posts">← Back to all posts</a></small>
 
-{{ template "comment-form.html" . }}
+	<form action="/posts/{{ .Data.Post.ID }}/edit" method="post" class="edit-form">
 
-{{ template "comment-list.html" . }}
+		{{ if .Data.Post.CanEdit }}
+		<input type="checkbox" id="edit-mode-toggle" class="hidden" />
+		{{ end }}
 
+		<post-title>
+			<h1 class="view-mode">{{ .Data.Post.Title }} [ {{ .Data.Post.ID }} ]</h1>
+			<input class="edit-mode" type="text" name="title" value="{{ .Data.Post.Title }}" />
+
+			{{ if .Data.Post.CanEdit }}
+			<label for="edit-mode-toggle" class="view-mode edit-btn">
+				<span class="btn small">Edit</span>
+			</label>
+			<label for="edit-mode-toggle" class="edit-mode cancel-btn">
+				<span class="btn small secondary">Cancel</span>
+			</label>
+			{{ end }}
+		</post-title>
+
+		<small>
+			{{ if .Data.Post.URL }}
+			<a href="{{ .Data.Post.URL }}">{{ .Data.Post.URL }}</a> ·
+			{{ end }}
+			Posted by {{ .Data.Post.UserName }} · {{ .Data.Post.CreatedAt }} · {{ .Data.Post.NumberOFComments }} Comments
+		</small>
+
+		<post-description>
+			<p class="view-mode">{{ .Data.Post.Description }}</p>
+			<textarea class="edit-mode" name="description" rows="5">{{ .Data.Post.Description }}</textarea>
+		</post-description>
+
+		{{ if .Data.Post.CanEdit }}
+		<div class="save-row">
+			<button type="submit" class="btn primary">Save</button>
+		</div>
+		{{ end }}
+
+	</form>
+
+	{{ template "comment-form.html" . }}
+
+	{{ template "comment-list.html" . }}
+</post-detail>
+
+<style>
+	post-detail {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+
+		.edit-form {
+			display: contents;
+		}
+
+		post-title {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+
+			h1 { flex: 1; margin: 0; }
+			input[type="text"] { flex: 1; font-size: 1.5rem; padding: 0.3rem 0.5rem; }
+		}
+
+		post-description {
+			p { margin: 0; }
+			textarea { width: 100%; box-sizing: border-box; font-size: 1rem; padding: 0.5rem; }
+		}
+
+		.hidden { display: none; }
+
+		/* default: edit-mode elements hidden */
+		.edit-mode { display: none !important; }
+		.save-row { display: none; }
+
+		/* when checkbox checked: show edit, hide view */
+		#edit-mode-toggle:checked ~ post-title .edit-mode,
+		#edit-mode-toggle:checked ~ post-description .edit-mode {
+			display: unset !important;
+		}
+		#edit-mode-toggle:checked ~ post-title .view-mode,
+		#edit-mode-toggle:checked ~ post-description .view-mode {
+			display: none !important;
+		}
+		#edit-mode-toggle:checked ~ .save-row {
+			display: flex;
+			gap: 0.5rem;
+		}
+
+		/* button styles */
+		.btn {
+			display: inline-block;
+			padding: 0.3rem 0.75rem;
+			font-size: 0.85rem;
+			cursor: pointer;
+			border: 1px solid var(--gray-3);
+			background: var(--gray-1);
+			font-weight: bold;
+		}
+		.btn.primary {
+			background: var(--foreground);
+			color: var(--background);
+			border-color: var(--foreground);
+		}
+		.btn.secondary {
+			background: none;
+		}
+	}
+</style>
 
 {{ end }}

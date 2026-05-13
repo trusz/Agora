@@ -112,11 +112,20 @@ form{
 	box-shadow: none;
 }
 
+button {
+	border-radius:0;
+}
+
 button[type="submit"]{
 	width: auto;
 	justify-self: end;
 	padding: 0.5rem 1rem;
 	border-radius: var(--radius);
+}
+
+button.small{
+	padding: 0.25rem 0.5rem;
+	font-size: var(--text-xs);
 }
 
 label {
